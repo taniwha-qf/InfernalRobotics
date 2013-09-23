@@ -443,6 +443,18 @@ public class MuMechToggle : MuMechPart
     //    translationChanged = 8;
     //}
 
+    protected void updateRotation(float speed, bool reverse, int mask)
+    {
+        rotation += TimeWarp.fixedDeltaTime * speed * (reverse ? -1 : 1);
+        rotationChanged |= mask;
+    }
+
+    protected void updateTranslation(float speed, bool reverse, int mask)
+    {
+        translation += TimeWarp.fixedDeltaTime * speed * (reverse ? -1 : 1);
+        translationChanged |= mask;
+    }
+
     protected override void onPartFixedUpdate()
     {
         if (!isRotationLock) //sr this part only!
@@ -460,8 +472,7 @@ public class MuMechToggle : MuMechPart
 
             if (on && (onRotateSpeed != 0))
             {
-                rotation += TimeWarp.fixedDeltaTime * onRotateSpeed * (reversedRotationOn ? -1 : 1);
-                rotationChanged |= 1;
+                updateRotation(+onRotateSpeed, reversedRotationOn, 1);
             }
 
 
@@ -470,58 +481,48 @@ public class MuMechToggle : MuMechPart
             {
                 if (((keyRotateSpeed != 0) && Input.GetKey(rotateKey) && (vessel == FlightGlobals.ActiveVessel) && InputLockManager.IsUnlocked(ControlTypes.LINEAR)) || ((moveFlags & 0x101) != 0))
                 {
-                    rotation += TimeWarp.fixedDeltaTime * keyRotateSpeed * (reversedRotationKey ? -1 : 1);
-                    rotationChanged |= 2;
+                    updateRotation(+keyRotateSpeed, reversedRotationKey, 2);
                 }
                 if (((keyRotateSpeed != 0) && Input.GetKey(revRotateKey) && (vessel == FlightGlobals.ActiveVessel) && InputLockManager.IsUnlocked(ControlTypes.LINEAR)) || ((moveFlags & 0x202) != 0))
                 {
-                    rotation -= TimeWarp.fixedDeltaTime * keyRotateSpeed * (reversedRotationKey ? -1 : 1);
-                    rotationChanged |= 2;
+                    updateRotation(-keyRotateSpeed, reversedRotationKey, 2);
                 }
 
                 if (on && (onTranslateSpeed != 0))
                 {
-                    translation += TimeWarp.fixedDeltaTime * onTranslateSpeed * (reversedTranslationOn ? -1 : 1);
-                    translationChanged |= 1;
+                    updateTranslation(+onTranslateSpeed, reversedTranslationOn, 1);
                 }
                 if (((keyTranslateSpeed != 0) && Input.GetKey(translateKey) && (vessel == FlightGlobals.ActiveVessel) && InputLockManager.IsUnlocked(ControlTypes.LINEAR)) || ((moveFlags & 0x101) != 0))
                 {
-                    translation += TimeWarp.fixedDeltaTime * keyTranslateSpeed * (reversedTranslationKey ? -1 : 1);
-                    translationChanged |= 2;
+                    updateTranslation(+keyTranslateSpeed, reversedTranslationKey, 2);
                 }
                 if (((keyTranslateSpeed != 0) && Input.GetKey(revTranslateKey) && (vessel == FlightGlobals.ActiveVessel) && InputLockManager.IsUnlocked(ControlTypes.LINEAR)) || ((moveFlags & 0x202) != 0))
                 {
-                    translation -= TimeWarp.fixedDeltaTime * keyTranslateSpeed * (reversedTranslationKey ? -1 : 1);
-                    translationChanged |= 2;
+                    updateTranslation(-keyTranslateSpeed, reversedTranslationKey, 2);
                 }
             }
             else //otherwise use just GUI controls
             {
                 if (((moveFlags & 0x101) != 0))
                 {
-                    rotation += TimeWarp.fixedDeltaTime * keyRotateSpeed * (reversedRotationKey ? -1 : 1);
-                    rotationChanged |= 2;
+                    updateRotation(+keyRotateSpeed, reversedRotationKey, 2);
                 }
                 if (((moveFlags & 0x202) != 0))
                 {
-                    rotation -= TimeWarp.fixedDeltaTime * keyRotateSpeed * (reversedRotationKey ? -1 : 1);
-                    rotationChanged |= 2;
+                    updateRotation(-keyRotateSpeed, reversedRotationKey, 2);
                 }
 
                 if (on && (onTranslateSpeed != 0))
                 {
-                    translation += TimeWarp.fixedDeltaTime * onTranslateSpeed * (reversedTranslationOn ? -1 : 1);
-                    translationChanged |= 1;
+                    updateTranslation(+onTranslateSpeed, reversedTranslationOn, 1);
                 }
                 if (((moveFlags & 0x101) != 0))
                 {
-                    translation += TimeWarp.fixedDeltaTime * keyTranslateSpeed * (reversedTranslationKey ? -1 : 1);
-                    translationChanged |= 2;
+                    updateTranslation(+keyTranslateSpeed, reversedTranslationKey, 2);
                 }
                 if (((moveFlags & 0x202) != 0))
                 {
-                    translation -= TimeWarp.fixedDeltaTime * keyTranslateSpeed * (reversedTranslationKey ? -1 : 1);
-                    translationChanged |= 2;
+                    updateTranslation(-keyTranslateSpeed, reversedTranslationKey, 2);
                 }
             }
 
