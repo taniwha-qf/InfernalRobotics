@@ -455,6 +455,11 @@ public class MuMechToggle : MuMechPart
         translationChanged |= mask;
     }
 
+    protected bool keyPressed(string key)
+    {
+        return vessel == FlightGlobals.ActiveVessel && InputLockManager.IsUnlocked(ControlTypes.LINEAR) && key != "" && Input.GetKey(key);
+    }
+
     protected override void onPartFixedUpdate()
     {
         if (!isRotationLock) //sr this part only!
@@ -480,46 +485,22 @@ public class MuMechToggle : MuMechPart
             }
 
 
-            //check if keys are assigned
-            if ((rotateKey != "") || (revRotateKey != ""))
+            if ((moveFlags & 0x101) != 0 || keyPressed(rotateKey))
             {
-                if (((keyRotateSpeed != 0) && Input.GetKey(rotateKey) && (vessel == FlightGlobals.ActiveVessel) && InputLockManager.IsUnlocked(ControlTypes.LINEAR)) || ((moveFlags & 0x101) != 0))
-                {
-                    updateRotation(+keyRotateSpeed, reversedRotationKey, 2);
-                }
-                if (((keyRotateSpeed != 0) && Input.GetKey(revRotateKey) && (vessel == FlightGlobals.ActiveVessel) && InputLockManager.IsUnlocked(ControlTypes.LINEAR)) || ((moveFlags & 0x202) != 0))
-                {
-                    updateRotation(-keyRotateSpeed, reversedRotationKey, 2);
-                }
-
-                if (((keyTranslateSpeed != 0) && Input.GetKey(translateKey) && (vessel == FlightGlobals.ActiveVessel) && InputLockManager.IsUnlocked(ControlTypes.LINEAR)) || ((moveFlags & 0x101) != 0))
-                {
-                    updateTranslation(+keyTranslateSpeed, reversedTranslationKey, 2);
-                }
-                if (((keyTranslateSpeed != 0) && Input.GetKey(revTranslateKey) && (vessel == FlightGlobals.ActiveVessel) && InputLockManager.IsUnlocked(ControlTypes.LINEAR)) || ((moveFlags & 0x202) != 0))
-                {
-                    updateTranslation(-keyTranslateSpeed, reversedTranslationKey, 2);
-                }
+                updateRotation(+keyRotateSpeed, reversedRotationKey, 2);
             }
-            else //otherwise use just GUI controls
+            if ((moveFlags & 0x202) != 0 || keyPressed(revRotateKey))
             {
-                if (((moveFlags & 0x101) != 0))
-                {
-                    updateRotation(+keyRotateSpeed, reversedRotationKey, 2);
-                }
-                if (((moveFlags & 0x202) != 0))
-                {
-                    updateRotation(-keyRotateSpeed, reversedRotationKey, 2);
-                }
-
-                if (((moveFlags & 0x101) != 0))
-                {
-                    updateTranslation(+keyTranslateSpeed, reversedTranslationKey, 2);
-                }
-                if (((moveFlags & 0x202) != 0))
-                {
-                    updateTranslation(-keyTranslateSpeed, reversedTranslationKey, 2);
-                }
+                updateRotation(-keyRotateSpeed, reversedRotationKey, 2);
+            }
+            //FIXME Hmm, these moveFlag checks clash with rotation. Is rotation and translation in the same part not intended?
+            if ((moveFlags & 0x101) != 0 || keyPressed(translateKey))
+            {
+                updateTranslation(+keyTranslateSpeed, reversedTranslationKey, 2);
+            }
+            if ((moveFlags & 0x202) != 0 || keyPressed(revTranslateKey))
+            {
+                updateTranslation(-keyTranslateSpeed, reversedTranslationKey, 2);
             }
 
             if (((moveFlags & 0x404) != 0) && (rotationChanged == 0) && (translationChanged == 0))
