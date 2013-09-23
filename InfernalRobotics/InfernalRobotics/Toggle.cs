@@ -474,6 +474,10 @@ public class MuMechToggle : MuMechPart
             {
                 updateRotation(+onRotateSpeed, reversedRotationOn, 1);
             }
+            if (on && (onTranslateSpeed != 0))
+            {
+                updateTranslation(+onTranslateSpeed, reversedTranslationOn, 1);
+            }
 
 
             //check if keys are assigned
@@ -488,10 +492,6 @@ public class MuMechToggle : MuMechPart
                     updateRotation(-keyRotateSpeed, reversedRotationKey, 2);
                 }
 
-                if (on && (onTranslateSpeed != 0))
-                {
-                    updateTranslation(+onTranslateSpeed, reversedTranslationOn, 1);
-                }
                 if (((keyTranslateSpeed != 0) && Input.GetKey(translateKey) && (vessel == FlightGlobals.ActiveVessel) && InputLockManager.IsUnlocked(ControlTypes.LINEAR)) || ((moveFlags & 0x101) != 0))
                 {
                     updateTranslation(+keyTranslateSpeed, reversedTranslationKey, 2);
@@ -512,10 +512,6 @@ public class MuMechToggle : MuMechPart
                     updateRotation(-keyRotateSpeed, reversedRotationKey, 2);
                 }
 
-                if (on && (onTranslateSpeed != 0))
-                {
-                    updateTranslation(+onTranslateSpeed, reversedTranslationOn, 1);
-                }
                 if (((moveFlags & 0x101) != 0))
                 {
                     updateTranslation(+keyTranslateSpeed, reversedTranslationKey, 2);
