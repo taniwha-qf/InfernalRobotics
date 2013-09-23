@@ -513,26 +513,9 @@ public class MuMechToggle : MuMechPart
 
             if (rotateLimits)
             {
-                if (rotation < rotateMin)
+                if (rotation < rotateMin || rotation > rotateMax)
                 {
-                    rotation = rotateMin;
-                    if (rotateLimitsRevertOn && ((rotationChanged & 1) > 0))
-                    {
-                        reversedRotationOn = !reversedRotationOn;
-                    }
-                    if (rotateLimitsRevertKey && ((rotationChanged & 2) > 0))
-                    {
-                        reversedRotationKey = !reversedRotationKey;
-                    }
-                    if (rotateLimitsOff)
-                    {
-                        on = false;
-                        updateState();
-                    }
-                }
-                if (rotation > rotateMax)
-                {
-                    rotation = rotateMax;
+                    rotation = Mathf.Clamp(rotation, rotateMin, rotateMax);
                     if (rotateLimitsRevertOn && ((rotationChanged & 1) > 0))
                     {
                         reversedRotationOn = !reversedRotationOn;
@@ -570,26 +553,9 @@ public class MuMechToggle : MuMechPart
 
             if (translateLimits)
             {
-                if (translation < translateMin)
+                if (translation < translateMin || translation > translateMax)
                 {
-                    translation = translateMin;
-                    if (translateLimitsRevertOn && ((translationChanged & 1) > 0))
-                    {
-                        reversedTranslationOn = !reversedTranslationOn;
-                    }
-                    if (translateLimitsRevertKey && ((translationChanged & 2) > 0))
-                    {
-                        reversedTranslationKey = !reversedTranslationKey;
-                    }
-                    if (translateLimitsOff)
-                    {
-                        on = false;
-                        updateState();
-                    }
-                }
-                if (translation > translateMax)
-                {
-                    translation = translateMax;
+                    translation = Mathf.Clamp(translation, translateMin, translateMax);
                     if (translateLimitsRevertOn && ((translationChanged & 1) > 0))
                     {
                         reversedTranslationOn = !reversedTranslationOn;
