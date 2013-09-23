@@ -166,28 +166,6 @@ public class MuMechToggle : MuMechPart
 
     protected void colliderizeChilds(Transform obj)
     {
-        //if (obj.name.StartsWith("node_collider") || obj.name.StartsWith("fixed_node_collider") || obj.name.StartsWith("mobile_node_collider"))
-        //{
-        //    print("Toggle: converting collider " + obj.name);
-        //    Mesh sharedMesh = UnityEngine.Object.Instantiate(obj.GetComponent<MeshFilter>().mesh) as Mesh;
-        //    UnityEngine.Object.Destroy(obj.GetComponent<MeshFilter>());
-        //    UnityEngine.Object.Destroy(obj.GetComponent<MeshRenderer>());
-        //    MeshCollider meshCollider = obj.gameObject.AddComponent<MeshCollider>();
-        //    meshCollider.sharedMesh = sharedMesh;
-        //    meshCollider.convex = true;
-        //    obj.parent = transform;
-        //    if (obj.name.StartsWith("mobile_node_collider"))
-        //    {
-        //        mobileColliders.Add(obj);
-        //    }
-        //}
-        //for (int i = 0; i < obj.childCount; i++)
-        //{
-        //    colliderizeChilds(obj.GetChild(i));
-        //}
-        
-        
-
         if (obj.name.StartsWith("node_collider") || obj.name.StartsWith("fixed_node_collider") || obj.name.StartsWith("mobile_node_collider"))
         {
             print("Toggle: converting collider " + obj.name);
@@ -430,18 +408,6 @@ public class MuMechToggle : MuMechPart
         translationDelta = translation;
         gotOrig = false;
     }
-
-    //public void rotate(float amount)
-    //{
-    //    rotation += amount;
-    //    rotationChanged = 8;
-    //}
-
-    //public void translate(float amount)
-    //{
-    //    translation += amount;
-    //    translationChanged = 8;
-    //}
 
     protected void updateRotation(float speed, bool reverse, int mask)
     {
