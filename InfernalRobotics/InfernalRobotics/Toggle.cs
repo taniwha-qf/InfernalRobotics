@@ -79,6 +79,8 @@ public class MuMechToggle : MuMechPart
     protected int rotationChanged = 0;
     protected int translationChanged = 0;
 
+    static Material debug_material;
+
     public int moveFlags = 0;
     public bool isRotationLock; //motion lock
     public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)
@@ -193,10 +195,26 @@ public class MuMechToggle : MuMechPart
         base.onPartLoad();
     }
 
+    protected void DebugCollider(MeshCollider collider)
+    {
+        if (debug_material == null) {
+            debug_material = new Material(Shader.Find("Self-Illumin/Specular"));
+            debug_material.color = Color.red;
+        }
+        MeshFilter mf = collider.gameObject.GetComponent<MeshFilter>();
+        if (mf == null) {
+            mf = collider.gameObject.AddComponent<MeshFilter>();
+        }
+        mf.sharedMesh = collider.sharedMesh;
+        MeshRenderer mr = collider.gameObject.GetComponent<MeshRenderer>();
+        if (mr == null) {
+            mr = collider.gameObject.AddComponent<MeshRenderer>();
+        }
+        mr.sharedMaterial = debug_material;
+    }
+
     protected void reparentFriction(Transform obj)
     {
-        Material debug = new Material(Shader.Find("Self-Illumin/Specular"));
-        debug.color = Color.red;
         Transform rotMod = transform.FindChild("model").FindChild(rotate_model);
         for (int i = 0; i < obj.childCount; i++) {
             MeshCollider tmp = obj.GetChild(i).GetComponent<MeshCollider>();
@@ -204,16 +222,7 @@ public class MuMechToggle : MuMechPart
                 tmp.material.dynamicFriction = tmp.material.staticFriction = friction;
                 tmp.material.frictionCombine = PhysicMaterialCombine.Maximum;
                 if (debugColliders) {
-                    MeshFilter mf = tmp.gameObject.GetComponent<MeshFilter>();
-                    if (mf == null) {
-                        mf = tmp.gameObject.AddComponent<MeshFilter>();
-                    }
-                    mf.sharedMesh = tmp.sharedMesh;
-                    MeshRenderer mr = tmp.gameObject.GetComponent<MeshRenderer>();
-                    if (mr == null) {
-                        mr = tmp.gameObject.AddComponent<MeshRenderer>();
-                    }
-                    mr.sharedMaterial = debug;
+                    DebugCollider(tmp);
                 }
             }
             if (obj.GetChild(i).name.StartsWith("fixed_node_collider") && (parent != null)) {
