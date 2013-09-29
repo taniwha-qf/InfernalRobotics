@@ -1,4 +1,5 @@
-﻿using System;
+﻿// vim:ts=4:et
+using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -426,6 +427,146 @@ public class MuMechToggle : MuMechPart
         return key != "" && vessel == FlightGlobals.ActiveVessel && InputLockManager.IsUnlocked(ControlTypes.LINEAR) && Input.GetKey(key);
     }
 
+    protected void checkInputs()
+    {
+
+        if (on && (onRotateSpeed != 0))
+        {
+            updateRotation(+onRotateSpeed, reversedRotationOn, 1);
+        }
+        if (on && (onTranslateSpeed != 0))
+        {
+            updateTranslation(+onTranslateSpeed, reversedTranslationOn, 1);
+        }
+
+
+        if ((moveFlags & 0x101) != 0 || keyPressed(rotateKey))
+        {
+            updateRotation(+keyRotateSpeed, reversedRotationKey, 2);
+        }
+        if ((moveFlags & 0x202) != 0 || keyPressed(revRotateKey))
+        {
+            updateRotation(-keyRotateSpeed, reversedRotationKey, 2);
+        }
+        //FIXME Hmm, these moveFlag checks clash with rotation. Is rotation and translation in the same part not intended?
+        if ((moveFlags & 0x101) != 0 || keyPressed(translateKey))
+        {
+            updateTranslation(+keyTranslateSpeed, reversedTranslationKey, 2);
+        }
+        if ((moveFlags & 0x202) != 0 || keyPressed(revTranslateKey))
+        {
+            updateTranslation(-keyTranslateSpeed, reversedTranslationKey, 2);
+        }
+
+        if (((moveFlags & 0x404) != 0) && (rotationChanged == 0) && (translationChanged == 0))
+        {
+            rotation -= Mathf.Sign(rotation) * Mathf.Min(Mathf.Abs(keyRotateSpeed * TimeWarp.deltaTime), Mathf.Abs(rotation));
+            translation -= Mathf.Sign(translation) * Mathf.Min(Mathf.Abs(keyTranslateSpeed * TimeWarp.deltaTime), Mathf.Abs(translation));
+            rotationChanged |= 2;
+            translationChanged |= 2;
+        }
+    }
+
+    protected void checkRotationLimits()
+    {
+        if (rotateLimits)
+        {
+            if (rotation < rotateMin || rotation > rotateMax)
+            {
+                rotation = Mathf.Clamp(rotation, rotateMin, rotateMax);
+                if (rotateLimitsRevertOn && ((rotationChanged & 1) > 0))
+                {
+                    reversedRotationOn = !reversedRotationOn;
+                }
+                if (rotateLimitsRevertKey && ((rotationChanged & 2) > 0))
+                {
+                    reversedRotationKey = !reversedRotationKey;
+                }
+                if (rotateLimitsOff)
+                {
+                    on = false;
+                    updateState();
+                }
+            }
+        }
+        else
+        {
+            if (rotation >= 180)
+            {
+                rotation -= 360;
+                rotationDelta -= 360;
+            }
+            if (rotation < -180)
+            {
+                rotation += 360;
+                rotationDelta += 360;
+            }
+        }
+        if (Math.Abs(rotation - rotationDelta) > 120)
+        {
+            rotationDelta = rotationLast;
+            attachJoint.connectedBody = null;
+            attachJoint.connectedBody = parent.Rigidbody;
+        }
+    }
+    protected void checkTranslationLimits()
+    {
+        if (translateLimits)
+        {
+            if (translation < translateMin || translation > translateMax)
+            {
+                translation = Mathf.Clamp(translation, translateMin, translateMax);
+                if (translateLimitsRevertOn && ((translationChanged & 1) > 0))
+                {
+                    reversedTranslationOn = !reversedTranslationOn;
+                }
+                if (translateLimitsRevertKey && ((translationChanged & 2) > 0))
+                {
+                    reversedTranslationKey = !reversedTranslationKey;
+                }
+                if (translateLimitsOff)
+                {
+                    on = false;
+                    updateState();
+                }
+            }
+        }
+    }
+
+    protected void doRotation()
+    {
+        if ((rotationChanged != 0) && (rotateJoint || (transform.FindChild("model").FindChild(rotate_model) != null)))
+        {
+            if (rotateJoint)
+            {
+                SoftJointLimit tmp = ((ConfigurableJoint)attachJoint).lowAngularXLimit;
+                tmp.limit = (invertSymmetry ? ((isSymmMaster() || (symmetryCounterparts.Count != 1)) ? 1 : -1) : 1) * (rotation - rotationDelta);
+                ((ConfigurableJoint)attachJoint).lowAngularXLimit = ((ConfigurableJoint)attachJoint).highAngularXLimit = tmp;
+                rotationLast = rotation;
+            }
+            else
+            {
+                Quaternion curRot = Quaternion.AngleAxis((invertSymmetry ? ((isSymmMaster() || (symmetryCounterparts.Count != 1)) ? 1 : -1) : 1) * rotation, rotateAxis);
+                transform.FindChild("model").FindChild(rotate_model).localRotation = curRot;
+            }
+        }
+    }
+
+    protected void doTranslation()
+    {
+        if ((translationChanged != 0) && (translateJoint || (transform.FindChild("model").FindChild(translate_model) != null)))
+        {
+            if (translateJoint)
+            {
+                ((ConfigurableJoint)attachJoint).targetPosition = -Vector3.right * (translation - translationDelta);
+            }
+            else
+            {
+                transform.FindChild("model").FindChild(translate_model).localPosition = origTranslation + translateAxis.normalized * (translation - translationDelta);
+            }
+        }
+    }
+
     protected override void onPartFixedUpdate()
     {
         if (!isRotationLock) //sr this part only!
@@ -441,130 +582,12 @@ public class MuMechToggle : MuMechPart
                 translationChanged = 4;
             }
 
-            if (on && (onRotateSpeed != 0))
-            {
-                updateRotation(+onRotateSpeed, reversedRotationOn, 1);
-            }
-            if (on && (onTranslateSpeed != 0))
-            {
-                updateTranslation(+onTranslateSpeed, reversedTranslationOn, 1);
-            }
+            checkInputs();
+            checkRotationLimits();
+            checkTranslationLimits();
 
-
-            if ((moveFlags & 0x101) != 0 || keyPressed(rotateKey))
-            {
-                updateRotation(+keyRotateSpeed, reversedRotationKey, 2);
-            }
-            if ((moveFlags & 0x202) != 0 || keyPressed(revRotateKey))
-            {
-                updateRotation(-keyRotateSpeed, reversedRotationKey, 2);
-            }
-            //FIXME Hmm, these moveFlag checks clash with rotation. Is rotation and translation in the same part not intended?
-            if ((moveFlags & 0x101) != 0 || keyPressed(translateKey))
-            {
-                updateTranslation(+keyTranslateSpeed, reversedTranslationKey, 2);
-            }
-            if ((moveFlags & 0x202) != 0 || keyPressed(revTranslateKey))
-            {
-                updateTranslation(-keyTranslateSpeed, reversedTranslationKey, 2);
-            }
-
-            if (((moveFlags & 0x404) != 0) && (rotationChanged == 0) && (translationChanged == 0))
-            {
-                rotation -= Mathf.Sign(rotation) * Mathf.Min(Mathf.Abs(keyRotateSpeed * TimeWarp.deltaTime), Mathf.Abs(rotation));
-                translation -= Mathf.Sign(translation) * Mathf.Min(Mathf.Abs(keyTranslateSpeed * TimeWarp.deltaTime), Mathf.Abs(translation));
-                rotationChanged |= 2;
-                translationChanged |= 2;
-            }
-
-            if (rotateLimits)
-            {
-                if (rotation < rotateMin || rotation > rotateMax)
-                {
-                    rotation = Mathf.Clamp(rotation, rotateMin, rotateMax);
-                    if (rotateLimitsRevertOn && ((rotationChanged & 1) > 0))
-                    {
-                        reversedRotationOn = !reversedRotationOn;
-                    }
-                    if (rotateLimitsRevertKey && ((rotationChanged & 2) > 0))
-                    {
-                        reversedRotationKey = !reversedRotationKey;
-                    }
-                    if (rotateLimitsOff)
-                    {
-                        on = false;
-                        updateState();
-                    }
-                }
-            }
-            else
-            {
-                if (rotation >= 180)
-                {
-                    rotation -= 360;
-                    rotationDelta -= 360;
-                }
-                if (rotation < -180)
-                {
-                    rotation += 360;
-                    rotationDelta += 360;
-                }
-            }
-            if (Math.Abs(rotation - rotationDelta) > 120)
-            {
-                rotationDelta = rotationLast;
-                attachJoint.connectedBody = null;
-                attachJoint.connectedBody = parent.Rigidbody;
-            }
-
-            if (translateLimits)
-            {
-                if (translation < translateMin || translation > translateMax)
-                {
-                    translation = Mathf.Clamp(translation, translateMin, translateMax);
-                    if (translateLimitsRevertOn && ((translationChanged & 1) > 0))
-                    {
-                        reversedTranslationOn = !reversedTranslationOn;
-                    }
-                    if (translateLimitsRevertKey && ((translationChanged & 2) > 0))
-                    {
-                        reversedTranslationKey = !reversedTranslationKey;
-                    }
-                    if (translateLimitsOff)
-                    {
-                        on = false;
-                        updateState();
-                    }
-                }
-            }
-
-            if ((rotationChanged != 0) && (rotateJoint || (transform.FindChild("model").FindChild(rotate_model) != null)))
-            {
-                if (rotateJoint)
-                {
-                    SoftJointLimit tmp = ((ConfigurableJoint)attachJoint).lowAngularXLimit;
-                    tmp.limit = (invertSymmetry ? ((isSymmMaster() || (symmetryCounterparts.Count != 1)) ? 1 : -1) : 1) * (rotation - rotationDelta);
-                    ((ConfigurableJoint)attachJoint).lowAngularXLimit = ((ConfigurableJoint)attachJoint).highAngularXLimit = tmp;
-                    rotationLast = rotation;
-                }
-                else
-                {
-                    Quaternion curRot = Quaternion.AngleAxis((invertSymmetry ? ((isSymmMaster() || (symmetryCounterparts.Count != 1)) ? 1 : -1) : 1) * rotation, rotateAxis);
-                    transform.FindChild("model").FindChild(rotate_model).localRotation = curRot;
-                }
-            }
-
-            if ((translationChanged != 0) && (translateJoint || (transform.FindChild("model").FindChild(translate_model) != null)))
-            {
-                if (translateJoint)
-                {
-                    ((ConfigurableJoint)attachJoint).targetPosition = -Vector3.right * (translation - translationDelta);
-                }
-                else
-                {
-                    transform.FindChild("model").FindChild(translate_model).localPosition = origTranslation + translateAxis.normalized * (translation - translationDelta);
-                }
-            }
+            doRotation();
+            doTranslation();
 
             rotationChanged = 0;
             translationChanged = 0;
