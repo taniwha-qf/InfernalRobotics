@@ -117,48 +117,38 @@ public class MuMechToggle : MuMechPart
 
     public void updateState()
     {
-        if (on)
-        {
-            if (toggle_model)
-            {
+        if (on) {
+            if (toggle_model) {
                 transform.FindChild("model").FindChild(on_model).renderer.enabled = true;
                 transform.FindChild("model").FindChild(off_model).renderer.enabled = false;
             }
-            if (toggle_drag)
-            {
+            if (toggle_drag) {
                 angularDrag = on_angularDrag;
                 minimum_drag = on_minimum_drag;
                 maximum_drag = on_maximum_drag;
             }
-            if (toggle_break)
-            {
+            if (toggle_break) {
                 crashTolerance = on_crashTolerance;
                 breakingForce = on_breakingForce;
                 breakingTorque = on_breakingTorque;
             }
-        }
-        else
-        {
-            if (toggle_model)
-            {
+        } else {
+            if (toggle_model) {
                 transform.FindChild("model").FindChild(on_model).renderer.enabled = false;
                 transform.FindChild("model").FindChild(off_model).renderer.enabled = true;
             }
-            if (toggle_drag)
-            {
+            if (toggle_drag) {
                 angularDrag = off_angularDrag;
                 minimum_drag = off_minimum_drag;
                 maximum_drag = off_maximum_drag;
             }
-            if (toggle_break)
-            {
+            if (toggle_break) {
                 crashTolerance = off_crashTolerance;
                 breakingForce = off_breakingForce;
                 breakingTorque = off_breakingTorque;
             }
         }
-        if (toggle_collision)
-        {
+        if (toggle_collision) {
             collider.enabled = on;
             collisionEnhancer.enabled = on;
             terrainCollider.enabled = on;
@@ -167,16 +157,12 @@ public class MuMechToggle : MuMechPart
 
     protected void colliderizeChilds(Transform obj)
     {
-        if (obj.name.StartsWith("node_collider") || obj.name.StartsWith("fixed_node_collider") || obj.name.StartsWith("mobile_node_collider"))
-        {
+        if (obj.name.StartsWith("node_collider") || obj.name.StartsWith("fixed_node_collider") || obj.name.StartsWith("mobile_node_collider")) {
             print("Toggle: converting collider " + obj.name);
 
-            if (!obj.GetComponent<MeshFilter>())
-            {
+            if (!obj.GetComponent<MeshFilter>()) {
                 print("Collider has no MeshFilter (yet?): skipping Colliderize");
-            }
-            else
-            {
+            } else {
                 Mesh sharedMesh = UnityEngine.Object.Instantiate(obj.GetComponent<MeshFilter>().mesh) as Mesh;
                 UnityEngine.Object.Destroy(obj.GetComponent<MeshFilter>());
                 UnityEngine.Object.Destroy(obj.GetComponent<MeshRenderer>());
@@ -185,14 +171,12 @@ public class MuMechToggle : MuMechPart
                 meshCollider.convex = true;
                 obj.parent = transform;
 
-                if (obj.name.StartsWith("mobile_node_collider"))
-                {
+                if (obj.name.StartsWith("mobile_node_collider")) {
                     mobileColliders.Add(obj);
                 }
             }
         }
-        for (int i = 0; i < obj.childCount; i++)
-        {
+        for (int i = 0; i < obj.childCount; i++) {
             colliderizeChilds(obj.GetChild(i));
         }
     }
@@ -214,41 +198,33 @@ public class MuMechToggle : MuMechPart
         Material debug = new Material(Shader.Find("Self-Illumin/Specular"));
         debug.color = Color.red;
         Transform rotMod = transform.FindChild("model").FindChild(rotate_model);
-        for (int i = 0; i < obj.childCount; i++)
-        {
+        for (int i = 0; i < obj.childCount; i++) {
             MeshCollider tmp = obj.GetChild(i).GetComponent<MeshCollider>();
-            if (tmp != null)
-            {
+            if (tmp != null) {
                 tmp.material.dynamicFriction = tmp.material.staticFriction = friction;
                 tmp.material.frictionCombine = PhysicMaterialCombine.Maximum;
-                if (debugColliders)
-                {
+                if (debugColliders) {
                     MeshFilter mf = tmp.gameObject.GetComponent<MeshFilter>();
-                    if (mf == null)
-                    {
+                    if (mf == null) {
                         mf = tmp.gameObject.AddComponent<MeshFilter>();
                     }
                     mf.sharedMesh = tmp.sharedMesh;
                     MeshRenderer mr = tmp.gameObject.GetComponent<MeshRenderer>();
-                    if (mr == null)
-                    {
+                    if (mr == null) {
                         mr = tmp.gameObject.AddComponent<MeshRenderer>();
                     }
                     mr.sharedMaterial = debug;
                 }
             }
-            if (obj.GetChild(i).name.StartsWith("fixed_node_collider") && (parent != null))
-            {
+            if (obj.GetChild(i).name.StartsWith("fixed_node_collider") && (parent != null)) {
                 print("Toggle: reparenting collider " + obj.GetChild(i).name);
                 obj.GetChild(i).RotateAround(transform.TransformPoint(rotatePivot), transform.TransformDirection(-rotateAxis), (invertSymmetry ? ((isSymmMaster() || (symmetryCounterparts.Count != 1)) ? -1 : 1) : -1) * rotation);
                 obj.GetChild(i).Translate(transform.TransformDirection(translateAxis.normalized) * -translation, Space.World);
                 obj.GetChild(i).parent = parent.transform;
             }
         }
-        if ((mobileColliders.Count > 0) && (rotMod != null))
-        {
-            foreach (Transform c in mobileColliders)
-            {
+        if ((mobileColliders.Count > 0) && (rotMod != null)) {
+            foreach (Transform c in mobileColliders) {
                 c.parent = rotMod;
             }
         }
@@ -258,15 +234,12 @@ public class MuMechToggle : MuMechPart
     {
         base.onPartStart();
         stackIcon.SetIcon(DefaultIcons.STRUT);
-        if (vessel == null)
-        {
+        if (vessel == null) {
             return;
         }
-        if (fixedMesh != "")
-        {
+        if (fixedMesh != "") {
             Transform fix = transform.FindChild("model").FindChild(fixedMesh);
-            if ((fix != null) && (parent != null))
-            {
+            if ((fix != null) && (parent != null)) {
                 fix.RotateAround(transform.TransformPoint(rotatePivot), transform.TransformDirection(rotateAxis.normalized), (invertSymmetry ? ((isSymmMaster() || (symmetryCounterparts.Count != 1)) ? 1 : -1) : 1) * rotation);
                 fix.Translate(transform.TransformDirection(translateAxis.normalized) * -translation, Space.World);
                 fix.parent = parent.transform;
@@ -296,25 +269,18 @@ public class MuMechToggle : MuMechPart
 
     protected bool setupJoints()
     {
-        if (!gotOrig)
-        {
+        if (!gotOrig) {
             print("setupJoints - !gotOrig");
-            if ((rotate_model != "") && (transform.FindChild("model").FindChild(rotate_model) != null))
-            {
+            if ((rotate_model != "") && (transform.FindChild("model").FindChild(rotate_model) != null)) {
                 origRotation = transform.FindChild("model").FindChild(rotate_model).localRotation;
-            }
-            else if ((translate_model != "") && (transform.FindChild("model").FindChild(translate_model) != null))
-            {
+            } else if ((translate_model != "") && (transform.FindChild("model").FindChild(translate_model) != null)) {
                 origTranslation = transform.FindChild("model").FindChild(translate_model).localPosition;
             }
-            if (translateJoint)
-            {
+            if (translateJoint) {
                 origTranslation = transform.localPosition;
             }
-            if (rotateJoint || translateJoint)
-            {
-                if (attachJoint != null)
-                {
+            if (rotateJoint || translateJoint) {
+                if (attachJoint != null) {
                     GameObject.Destroy(attachJoint);
                     ConfigurableJoint newJoint = gameObject.AddComponent<ConfigurableJoint>();
                     newJoint.breakForce = breakingForce;
@@ -325,8 +291,7 @@ public class MuMechToggle : MuMechPart
                     spring.limit = 0;
                     spring.damper = jointDamping;
                     spring.spring = jointSpring;
-                    if (translateJoint)
-                    {
+                    if (translateJoint) {
                         newJoint.xMotion = ConfigurableJointMotion.Free;
                         newJoint.yMotion = ConfigurableJointMotion.Free;
                         newJoint.zMotion = ConfigurableJointMotion.Free;
@@ -337,20 +302,15 @@ public class MuMechToggle : MuMechPart
                         drv.positionDamper = 0;
                         drv.maximumForce = 1e20F;
                         newJoint.xDrive = newJoint.yDrive = newJoint.zDrive = drv;
-                    }
-                    else
-                    {
+                    } else {
                         newJoint.xMotion = ConfigurableJointMotion.Locked;
                         newJoint.yMotion = ConfigurableJointMotion.Locked;
                         newJoint.zMotion = ConfigurableJointMotion.Locked;
                     }
-                    if (rotateJoint)
-                    {
+                    if (rotateJoint) {
                         newJoint.angularXMotion = ConfigurableJointMotion.Limited;
                         newJoint.lowAngularXLimit = newJoint.highAngularXLimit = spring;
-                    }
-                    else
-                    {
+                    } else {
                         newJoint.angularXMotion = ConfigurableJointMotion.Locked;
                     }
                     newJoint.angularYMotion = ConfigurableJointMotion.Locked;
@@ -367,9 +327,7 @@ public class MuMechToggle : MuMechPart
                     gotOrig = true;
                     return true;
                 }
-            }
-            else
-            {
+            } else {
                 gotOrig = true;
                 return true;
             }
@@ -386,8 +344,7 @@ public class MuMechToggle : MuMechPart
 
     protected override void onPartUpdate()
     {
-        if (connected && Input.GetKeyDown(onKey) && (vessel == FlightGlobals.ActiveVessel) && InputLockManager.IsUnlocked(ControlTypes.LINEAR))
-        {
+        if (connected && Input.GetKeyDown(onKey) && (vessel == FlightGlobals.ActiveVessel) && InputLockManager.IsUnlocked(ControlTypes.LINEAR)) {
             on = !on;
             updateState();
         }
@@ -395,8 +352,7 @@ public class MuMechToggle : MuMechPart
 
     protected override bool onPartActivate()
     {
-        if (onActivate)
-        {
+        if (onActivate) {
             on = true;
             updateState();
         }
@@ -430,36 +386,29 @@ public class MuMechToggle : MuMechPart
     protected void checkInputs()
     {
 
-        if (on && (onRotateSpeed != 0))
-        {
+        if (on && (onRotateSpeed != 0)) {
             updateRotation(+onRotateSpeed, reversedRotationOn, 1);
         }
-        if (on && (onTranslateSpeed != 0))
-        {
+        if (on && (onTranslateSpeed != 0)) {
             updateTranslation(+onTranslateSpeed, reversedTranslationOn, 1);
         }
 
 
-        if ((moveFlags & 0x101) != 0 || keyPressed(rotateKey))
-        {
+        if ((moveFlags & 0x101) != 0 || keyPressed(rotateKey)) {
             updateRotation(+keyRotateSpeed, reversedRotationKey, 2);
         }
-        if ((moveFlags & 0x202) != 0 || keyPressed(revRotateKey))
-        {
+        if ((moveFlags & 0x202) != 0 || keyPressed(revRotateKey)) {
             updateRotation(-keyRotateSpeed, reversedRotationKey, 2);
         }
         //FIXME Hmm, these moveFlag checks clash with rotation. Is rotation and translation in the same part not intended?
-        if ((moveFlags & 0x101) != 0 || keyPressed(translateKey))
-        {
+        if ((moveFlags & 0x101) != 0 || keyPressed(translateKey)) {
             updateTranslation(+keyTranslateSpeed, reversedTranslationKey, 2);
         }
-        if ((moveFlags & 0x202) != 0 || keyPressed(revTranslateKey))
-        {
+        if ((moveFlags & 0x202) != 0 || keyPressed(revTranslateKey)) {
             updateTranslation(-keyTranslateSpeed, reversedTranslationKey, 2);
         }
 
-        if (((moveFlags & 0x404) != 0) && (rotationChanged == 0) && (translationChanged == 0))
-        {
+        if (((moveFlags & 0x404) != 0) && (rotationChanged == 0) && (translationChanged == 0)) {
             rotation -= Mathf.Sign(rotation) * Mathf.Min(Mathf.Abs(keyRotateSpeed * TimeWarp.deltaTime), Mathf.Abs(rotation));
             translation -= Mathf.Sign(translation) * Mathf.Min(Mathf.Abs(keyTranslateSpeed * TimeWarp.deltaTime), Mathf.Abs(translation));
             rotationChanged |= 2;
@@ -469,63 +418,49 @@ public class MuMechToggle : MuMechPart
 
     protected void checkRotationLimits()
     {
-        if (rotateLimits)
-        {
-            if (rotation < rotateMin || rotation > rotateMax)
-            {
+        if (rotateLimits) {
+            if (rotation < rotateMin || rotation > rotateMax) {
                 rotation = Mathf.Clamp(rotation, rotateMin, rotateMax);
-                if (rotateLimitsRevertOn && ((rotationChanged & 1) > 0))
-                {
+                if (rotateLimitsRevertOn && ((rotationChanged & 1) > 0)) {
                     reversedRotationOn = !reversedRotationOn;
                 }
-                if (rotateLimitsRevertKey && ((rotationChanged & 2) > 0))
-                {
+                if (rotateLimitsRevertKey && ((rotationChanged & 2) > 0)) {
                     reversedRotationKey = !reversedRotationKey;
                 }
-                if (rotateLimitsOff)
-                {
+                if (rotateLimitsOff) {
                     on = false;
                     updateState();
                 }
             }
-        }
-        else
-        {
-            if (rotation >= 180)
-            {
+        } else {
+            if (rotation >= 180) {
                 rotation -= 360;
                 rotationDelta -= 360;
             }
-            if (rotation < -180)
-            {
+            if (rotation < -180) {
                 rotation += 360;
                 rotationDelta += 360;
             }
         }
-        if (Math.Abs(rotation - rotationDelta) > 120)
-        {
+        if (Math.Abs(rotation - rotationDelta) > 120) {
             rotationDelta = rotationLast;
             attachJoint.connectedBody = null;
             attachJoint.connectedBody = parent.Rigidbody;
         }
     }
+
     protected void checkTranslationLimits()
     {
-        if (translateLimits)
-        {
-            if (translation < translateMin || translation > translateMax)
-            {
+        if (translateLimits) {
+            if (translation < translateMin || translation > translateMax) {
                 translation = Mathf.Clamp(translation, translateMin, translateMax);
-                if (translateLimitsRevertOn && ((translationChanged & 1) > 0))
-                {
+                if (translateLimitsRevertOn && ((translationChanged & 1) > 0)) {
                     reversedTranslationOn = !reversedTranslationOn;
                 }
-                if (translateLimitsRevertKey && ((translationChanged & 2) > 0))
-                {
+                if (translateLimitsRevertKey && ((translationChanged & 2) > 0)) {
                     reversedTranslationKey = !reversedTranslationKey;
                 }
-                if (translateLimitsOff)
-                {
+                if (translateLimitsOff) {
                     on = false;
                     updateState();
                 }
@@ -535,17 +470,13 @@ public class MuMechToggle : MuMechPart
 
     protected void doRotation()
     {
-        if ((rotationChanged != 0) && (rotateJoint || (transform.FindChild("model").FindChild(rotate_model) != null)))
-        {
-            if (rotateJoint)
-            {
+        if ((rotationChanged != 0) && (rotateJoint || (transform.FindChild("model").FindChild(rotate_model) != null))) {
+            if (rotateJoint) {
                 SoftJointLimit tmp = ((ConfigurableJoint)attachJoint).lowAngularXLimit;
                 tmp.limit = (invertSymmetry ? ((isSymmMaster() || (symmetryCounterparts.Count != 1)) ? 1 : -1) : 1) * (rotation - rotationDelta);
                 ((ConfigurableJoint)attachJoint).lowAngularXLimit = ((ConfigurableJoint)attachJoint).highAngularXLimit = tmp;
                 rotationLast = rotation;
-            }
-            else
-            {
+            } else {
                 Quaternion curRot = Quaternion.AngleAxis((invertSymmetry ? ((isSymmMaster() || (symmetryCounterparts.Count != 1)) ? 1 : -1) : 1) * rotation, rotateAxis);
                 transform.FindChild("model").FindChild(rotate_model).localRotation = curRot;
             }
@@ -554,14 +485,10 @@ public class MuMechToggle : MuMechPart
 
     protected void doTranslation()
     {
-        if ((translationChanged != 0) && (translateJoint || (transform.FindChild("model").FindChild(translate_model) != null)))
-        {
-            if (translateJoint)
-            {
+        if ((translationChanged != 0) && (translateJoint || (transform.FindChild("model").FindChild(translate_model) != null))) {
+            if (translateJoint) {
                 ((ConfigurableJoint)attachJoint).targetPosition = -Vector3.right * (translation - translationDelta);
-            }
-            else
-            {
+            } else {
                 transform.FindChild("model").FindChild(translate_model).localPosition = origTranslation + translateAxis.normalized * (translation - translationDelta);
             }
         }
@@ -569,36 +496,29 @@ public class MuMechToggle : MuMechPart
 
     protected override void onPartFixedUpdate()
     {
-        if (!isRotationLock) //sr this part only!
-        {
-            if (state == PartStates.DEAD)
-            {
-                return;
-            }
+        if (isRotationLock || state == PartStates.DEAD) {
+            return;
+        }
 
-            if (setupJoints())
-            {
-                rotationChanged = 4;
-                translationChanged = 4;
-            }
+        if (setupJoints()) {
+            rotationChanged = 4;
+            translationChanged = 4;
+        }
 
-            checkInputs();
-            checkRotationLimits();
-            checkTranslationLimits();
+        checkInputs();
+        checkRotationLimits();
+        checkTranslationLimits();
 
-            doRotation();
-            doTranslation();
+        doRotation();
+        doTranslation();
 
-            rotationChanged = 0;
-            translationChanged = 0;
+        rotationChanged = 0;
+        translationChanged = 0;
 
-            if (vessel != null)
-            {
-                UpdateOrgPosAndRot(vessel.rootPart);
-                foreach (Part child in FindChildParts<Part>(true))
-                {
-                    child.UpdateOrgPosAndRot(vessel.rootPart);
-                }
+        if (vessel != null) {
+            UpdateOrgPosAndRot(vessel.rootPart);
+            foreach (Part child in FindChildParts<Part>(true)) {
+                child.UpdateOrgPosAndRot(vessel.rootPart);
             }
         }
     }
