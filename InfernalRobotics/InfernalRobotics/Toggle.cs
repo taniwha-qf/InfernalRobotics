@@ -159,7 +159,9 @@ public class MuMechToggle : MuMechPart
 
     protected void colliderizeChilds(Transform obj)
     {
-        if (obj.name.StartsWith("node_collider") || obj.name.StartsWith("fixed_node_collider") || obj.name.StartsWith("mobile_node_collider")) {
+        if (obj.name.StartsWith("node_collider")
+            || obj.name.StartsWith("fixed_node_collider")
+            || obj.name.StartsWith("mobile_node_collider")) {
             print("Toggle: converting collider " + obj.name);
 
             if (!obj.GetComponent<MeshFilter>()) {
