@@ -79,6 +79,7 @@ public class MuMechToggle : MuMechPart
     protected int rotationChanged = 0;
     protected int translationChanged = 0;
 
+    public string bottomNode = "bottom";
     static Material debug_material;
 
     public int moveFlags = 0;
@@ -215,11 +216,30 @@ public class MuMechToggle : MuMechPart
         mr.sharedMaterial = debug_material;
     }
 
+    protected void AttachToParent(Transform obj)
+    {
+        if (rotateJoint) {
+            var pivot = transform.TransformPoint(rotatePivot);
+            var raxis = transform.TransformDirection(rotateAxis);
+            float sign = 1;
+            if (invertSymmetry) {
+                //FIXME is this actually desired?
+                sign = ((isSymmMaster() || (symmetryCounterparts.Count != 1)) ? 1 : -1);
+            }
+            obj.RotateAround(pivot, raxis, sign * rotation);
+        } else if (translateJoint) {
+            var taxis = transform.TransformDirection(translateAxis.normalized);
+            obj.Translate(taxis * -(translation - translateMin), Space.Self);//XXX double check sign!
+        }
+        obj.parent = parent.transform;
+    }
+
     protected void reparentFriction(Transform obj)
     {
         Transform rotMod = transform.FindChild("model").FindChild(rotate_model);
         for (int i = 0; i < obj.childCount; i++) {
-            MeshCollider tmp = obj.GetChild(i).GetComponent<MeshCollider>();
+            var child = obj.GetChild(i);
+            MeshCollider tmp = child.GetComponent<MeshCollider>();
             if (tmp != null) {
                 tmp.material.dynamicFriction = tmp.material.staticFriction = friction;
                 tmp.material.frictionCombine = PhysicMaterialCombine.Maximum;
@@ -227,11 +247,9 @@ public class MuMechToggle : MuMechPart
                     DebugCollider(tmp);
                 }
             }
-            if (obj.GetChild(i).name.StartsWith("fixed_node_collider") && (parent != null)) {
-                print("Toggle: reparenting collider " + obj.GetChild(i).name);
-                obj.GetChild(i).RotateAround(transform.TransformPoint(rotatePivot), transform.TransformDirection(-rotateAxis), (invertSymmetry ? ((isSymmMaster() || (symmetryCounterparts.Count != 1)) ? -1 : 1) : -1) * rotation);
-                obj.GetChild(i).Translate(transform.TransformDirection(translateAxis.normalized) * -translation, Space.World);
-                obj.GetChild(i).parent = parent.transform;
+            if (child.name.StartsWith("fixed_node_collider") && (parent != null)) {
+                print("Toggle: reparenting collider " + child.name);
+                AttachToParent(child);
             }
         }
         if ((mobileColliders.Count > 0) && (rotMod != null)) {
@@ -241,6 +259,32 @@ public class MuMechToggle : MuMechPart
         }
     }
 
+    protected void BuildAttachments()
+    {
+        foreach (Transform t in transform.FindChild("model")) {
+            print ("[IR] " + t.name + " " + fixedMesh);
+        }
+        if (findAttachNodeByPart(parent).id.Contains(bottomNode)
+            || attachMode == AttachModes.SRF_ATTACH) {
+            if (fixedMesh != "") {
+                Transform fix = transform.FindChild("model").FindChild(fixedMesh);
+                if ((fix != null) && (parent != null)) {
+                    AttachToParent(fix);
+                }
+            }
+        } else {
+            print ("[IR] " + vessel.name + " " + name);
+            foreach (Transform t in transform.FindChild("model")) {
+                print ("[IR] " + t.name + " " + fixedMesh);
+                if (t.name != fixedMesh)
+                    AttachToParent(t);
+            }
+            if (translateJoint)
+                translateAxis *= -1;
+        }
+        reparentFriction(transform);
+    }
+
     protected override void onPartStart()
     {
         base.onPartStart();
@@ -248,15 +292,7 @@ public class MuMechToggle : MuMechPart
         if (vessel == null) {
             return;
         }
-        if (fixedMesh != "") {
-            Transform fix = transform.FindChild("model").FindChild(fixedMesh);
-            if ((fix != null) && (parent != null)) {
-                fix.RotateAround(transform.TransformPoint(rotatePivot), transform.TransformDirection(rotateAxis.normalized), (invertSymmetry ? ((isSymmMaster() || (symmetryCounterparts.Count != 1)) ? 1 : -1) : 1) * rotation);
-                fix.Translate(transform.TransformDirection(translateAxis.normalized) * -translation, Space.World);
-                fix.parent = parent.transform;
-            }
-        }
-        reparentFriction(transform);
+        BuildAttachments();
         on = true;
         updateState();
     }
@@ -348,6 +384,7 @@ public class MuMechToggle : MuMechPart
 
     protected override void onFlightStart()
     {
+        BuildAttachments();
         setupJoints();
         on = false;
         updateState();
