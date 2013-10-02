@@ -261,9 +261,6 @@ public class MuMechToggle : MuMechPart
 
     protected void BuildAttachments()
     {
-        foreach (Transform t in transform.FindChild("model")) {
-            print ("[IR] " + t.name + " " + fixedMesh);
-        }
         if (findAttachNodeByPart(parent).id.Contains(bottomNode)
             || attachMode == AttachModes.SRF_ATTACH) {
             if (fixedMesh != "") {
@@ -273,9 +270,7 @@ public class MuMechToggle : MuMechPart
                 }
             }
         } else {
-            print ("[IR] " + vessel.name + " " + name);
             foreach (Transform t in transform.FindChild("model")) {
-                print ("[IR] " + t.name + " " + fixedMesh);
                 if (t.name != fixedMesh)
                     AttachToParent(t);
             }
