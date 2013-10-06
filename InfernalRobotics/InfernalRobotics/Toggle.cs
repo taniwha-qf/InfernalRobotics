@@ -4,82 +4,93 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-public class MuMechToggle : MuMechPart
+public class MuMechToggle : PartModule
 {
-    public bool toggle_drag = false;
-    public bool toggle_break = false;
-    public bool toggle_model = false;
-    public bool toggle_collision = false;
-    public float on_angularDrag = 2.0F;
-    public float on_maximum_drag = 0.2F;
-    public float on_minimum_drag = 0.2F;
-    public float on_crashTolerance = 9.0F;
-    public float on_breakingForce = 22.0F;
-    public float on_breakingTorque = 22.0F;
-    public float off_angularDrag = 2.0F;
-    public float off_maximum_drag = 0.2F;
-    public float off_minimum_drag = 0.2F;
-    public float off_crashTolerance = 9.0F;
-    public float off_breakingForce = 22.0F;
-    public float off_breakingTorque = 22.0F;
-    public string on_model = "on";
-    public string off_model = "off";
-    public string rotate_model = "on";
-    public Vector3 rotateAxis = Vector3.forward;
-    public Vector3 rotatePivot = Vector3.zero;
-    public float onRotateSpeed = 0;
-    public string onKey = "p";
-    public float keyRotateSpeed = 0;
-    public string rotateKey = "9";
-    public string revRotateKey = "0";
-    public bool rotateJoint = false;
-    public bool rotateLimits = false;
-    public float rotateMin = 0;
-    public float rotateMax = 300;
-    public bool rotateLimitsRevertOn = true;
-    public bool rotateLimitsRevertKey = false;
-    public bool rotateLimitsOff = false;
-    public float jointSpring = 0;
-    public float jointDamping = 0;
-    public bool onActivate = true;
-    public bool invertSymmetry = true;
-    public string fixedMesh = "";
-    public float friction = 0.5F;
+    [KSPField(isPersistant = false)] public bool toggle_drag = false;
+    [KSPField(isPersistant = false)] public bool toggle_break = false;
+    [KSPField(isPersistant = false)] public bool toggle_model = false;
+    [KSPField(isPersistant = false)] public bool toggle_collision = false;
+    [KSPField(isPersistant = false)] public float on_angularDrag = 2.0F;
+    [KSPField(isPersistant = false)] public float on_maximum_drag = 0.2F;
+    [KSPField(isPersistant = false)] public float on_minimum_drag = 0.2F;
+    [KSPField(isPersistant = false)] public float on_crashTolerance = 9.0F;
+    [KSPField(isPersistant = false)] public float on_breakingForce = 22.0F;
+    [KSPField(isPersistant = false)] public float on_breakingTorque = 22.0F;
+    [KSPField(isPersistant = false)] public float off_angularDrag = 2.0F;
+    [KSPField(isPersistant = false)] public float off_maximum_drag = 0.2F;
+    [KSPField(isPersistant = false)] public float off_minimum_drag = 0.2F;
+    [KSPField(isPersistant = false)] public float off_crashTolerance = 9.0F;
+    [KSPField(isPersistant = false)] public float off_breakingForce = 22.0F;
+    [KSPField(isPersistant = false)] public float off_breakingTorque = 22.0F;
+    [KSPField(isPersistant = false)] public string on_model = "on";
+    [KSPField(isPersistant = false)] public string off_model = "off";
 
-    public string translate_model = "on";
-    public Vector3 translateAxis = Vector3.forward;
-    public float onTranslateSpeed = 0;
-    public float keyTranslateSpeed = 0;
-    public string translateKey = "9";
-    public string revTranslateKey = "0";
-    public bool translateJoint = false;
-    public bool translateLimits = false;
-    public float translateMin = 0;
-    public float translateMax = 300;
-    public bool translateLimitsRevertOn = true;
-    public bool translateLimitsRevertKey = false;
-    public bool translateLimitsOff = false;
+    [KSPField(isPersistant = true)] public string ServoName = "";
+    [KSPField(isPersistant = true)] public string GroupName = "";
+    [KSPField(isPersistant = true)] public string ForwardKey = "";
+    [KSPField(isPersistant = true)] public string ReverseKey = "";
 
-    public bool debugColliders = false;
+    [KSPField(isPersistant = false)] public string onKey = "p";
+    [KSPField(isPersistant = false)] public bool onActivate = true;
+    [KSPField(isPersistant = true)] public bool on = false;
 
-    protected bool on = false;
+    [KSPField(isPersistant = true)] public bool isMotionLock;
+
+    [KSPField(isPersistant = false)] public string rotate_model = "on";
+    [KSPField(isPersistant = false)] public Vector3 rotateAxis = Vector3.forward;
+    [KSPField(isPersistant = false)] public Vector3 rotatePivot = Vector3.zero;
+    [KSPField(isPersistant = false)] public float onRotateSpeed = 0;
+    [KSPField(isPersistant = false)] public float keyRotateSpeed = 0;
+    [KSPField(isPersistant = false)] public string rotateKey = "9";
+    [KSPField(isPersistant = false)] public string revRotateKey = "0";
+    [KSPField(isPersistant = false)] public bool rotateJoint = false;
+    [KSPField(isPersistant = false)] public bool rotateLimits = false;
+    [KSPField(isPersistant = false)] public float rotateMin = 0;
+    [KSPField(isPersistant = false)] public float rotateMax = 300;
+    [KSPField(isPersistant = false)] public bool rotateLimitsRevertOn = true;
+    [KSPField(isPersistant = false)] public bool rotateLimitsRevertKey = false;
+    [KSPField(isPersistant = false)] public bool rotateLimitsOff = false;
+    public float rotationLast = 0;
+    [KSPField(isPersistant = true)] public bool reversedRotationOn = false;
+    [KSPField(isPersistant = true)] public bool reversedRotationKey = false;
+    [KSPField(isPersistant = true)] public float rotationDelta = 0;
+    [KSPField(isPersistant = true)] public float rotation = 0;
+
+    [KSPField(isPersistant = false)] public string bottomNode = "bottom";
+    [KSPField(isPersistant = false)] public string fixedMesh = "";
+    [KSPField(isPersistant = false)] public float jointSpring = 0;
+    [KSPField(isPersistant = false)] public float jointDamping = 0;
+    [KSPField(isPersistant = false)] public bool invertSymmetry = true;
+    [KSPField(isPersistant = false)] public float friction = 0.5F;
+
+    [KSPField(isPersistant = false)] public string translate_model = "on";
+    [KSPField(isPersistant = false)] public Vector3 translateAxis = Vector3.forward;
+    [KSPField(isPersistant = false)] public float onTranslateSpeed = 0;
+    [KSPField(isPersistant = false)] public float keyTranslateSpeed = 0;
+    [KSPField(isPersistant = false)] public string translateKey = "9";
+    [KSPField(isPersistant = false)] public string revTranslateKey = "0";
+    [KSPField(isPersistant = false)] public bool translateJoint = false;
+    [KSPField(isPersistant = false)] public bool translateLimits = false;
+    [KSPField(isPersistant = false)] public float translateMin = 0;
+    [KSPField(isPersistant = false)] public float translateMax = 300;
+    [KSPField(isPersistant = false)] public bool translateLimitsRevertOn = true;
+    [KSPField(isPersistant = false)] public bool translateLimitsRevertKey = false;
+    [KSPField(isPersistant = false)] public bool translateLimitsOff = false;
+    [KSPField(isPersistant = true)] public bool reversedTranslationOn = false;
+    [KSPField(isPersistant = true)] public bool reversedTranslationKey = false;
+    [KSPField(isPersistant = true)] public float translationDelta = 0;
+    [KSPField(isPersistant = true)] public float translation = 0;
+
+    [KSPField(isPersistant = false)] public bool debugColliders = false;
+
     protected Quaternion origRotation;
-    protected float rotation = 0;
-    protected float rotationDelta = 0;
-    protected float rotationLast = 0;
-    protected bool reversedRotationOn = false;
-    protected bool reversedRotationKey = false;
     protected Vector3 origTranslation;
-    protected float translation = 0;
-    protected float translationDelta = 0;
-    protected bool reversedTranslationOn = false;
-    protected bool reversedTranslationKey = false;
     protected bool gotOrig = false;
+
     protected List<Transform> mobileColliders = new List<Transform>();
     protected int rotationChanged = 0;
     protected int translationChanged = 0;
 
-    public string bottomNode = "bottom";
     static Material debug_material;
 
     protected Transform model_transform;
@@ -88,40 +99,21 @@ public class MuMechToggle : MuMechPart
     protected Transform rotate_model_transform;
     protected Transform translate_model_transform;
 
+    protected bool loaded;
+
     public int moveFlags = 0;
-    public bool isRotationLock; //motion lock
-    public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)
+
+    private static int s_creationOrder = 0;
+    public int creationOrder = 0;
+
+    public bool isSymmMaster()
     {
-        partDataCollection.Add("on", new KSPParseable(on, KSPParseable.Type.BOOL));
-        partDataCollection.Add("reversedRotationOn", new KSPParseable(reversedRotationOn, KSPParseable.Type.BOOL));
-        partDataCollection.Add("reversedRotationKey", new KSPParseable(reversedRotationKey, KSPParseable.Type.BOOL));
-        partDataCollection.Add("reversedTranslationOn", new KSPParseable(reversedTranslationOn, KSPParseable.Type.BOOL));
-        partDataCollection.Add("reversedTranslationKey", new KSPParseable(reversedTranslationKey, KSPParseable.Type.BOOL));
-        partDataCollection.Add("rot", new KSPParseable(rotation, KSPParseable.Type.FLOAT));
-        partDataCollection.Add("trans", new KSPParseable(translation, KSPParseable.Type.FLOAT));
-        partDataCollection.Add("rotD", new KSPParseable(rotationDelta, KSPParseable.Type.FLOAT));
-        partDataCollection.Add("transD", new KSPParseable(translationDelta, KSPParseable.Type.FLOAT));
-
-        base.onFlightStateSave(partDataCollection);
-    }
-
-    public override void onFlightStateLoad(Dictionary<string, KSPParseable> parsedData)
-    {
-        if (parsedData.ContainsKey("on")) on = parsedData["on"].value_bool;
-        if (parsedData.ContainsKey("reversedRotationOn")) reversedRotationOn = parsedData["reversedRotationOn"].value_bool;
-        if (parsedData.ContainsKey("reversedRotationKey")) reversedRotationKey = parsedData["reversedRotationKey"].value_bool;
-        if (parsedData.ContainsKey("reversedTranslationOn")) reversedTranslationOn = parsedData["reversedTranslationOn"].value_bool;
-        if (parsedData.ContainsKey("reversedTranslationKey")) reversedTranslationKey = parsedData["reversedTranslationKey"].value_bool;
-        if (parsedData.ContainsKey("rot")) rotation = parsedData["rot"].value_float;
-        if (parsedData.ContainsKey("trans")) translation = parsedData["trans"].value_float;
-        if (parsedData.ContainsKey("rotD")) rotationDelta = parsedData["rotD"].value_float;
-        if (parsedData.ContainsKey("transD")) translationDelta = parsedData["transD"].value_float;
-        updateState();
-
-        rotationDelta = rotationLast = rotation;
-        translationDelta = translation;
-
-        base.onFlightStateLoad(parsedData);
+        for (int i = 0; i < part.symmetryCounterparts.Count; i++) {
+            if (((MuMechToggle)part.symmetryCounterparts[i].Modules["MuMechToggle"]).creationOrder < creationOrder) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void updateState()
@@ -132,14 +124,14 @@ public class MuMechToggle : MuMechPart
                 off_model_transform.renderer.enabled = false;
             }
             if (toggle_drag) {
-                angularDrag = on_angularDrag;
-                minimum_drag = on_minimum_drag;
-                maximum_drag = on_maximum_drag;
+                part.angularDrag = on_angularDrag;
+                part.minimum_drag = on_minimum_drag;
+                part.maximum_drag = on_maximum_drag;
             }
             if (toggle_break) {
-                crashTolerance = on_crashTolerance;
-                breakingForce = on_breakingForce;
-                breakingTorque = on_breakingTorque;
+                part.crashTolerance = on_crashTolerance;
+                part.breakingForce = on_breakingForce;
+                part.breakingTorque = on_breakingTorque;
             }
         } else {
             if (toggle_model) {
@@ -147,20 +139,20 @@ public class MuMechToggle : MuMechPart
                 off_model_transform.renderer.enabled = true;
             }
             if (toggle_drag) {
-                angularDrag = off_angularDrag;
-                minimum_drag = off_minimum_drag;
-                maximum_drag = off_maximum_drag;
+                part.angularDrag = off_angularDrag;
+                part.minimum_drag = off_minimum_drag;
+                part.maximum_drag = off_maximum_drag;
             }
             if (toggle_break) {
-                crashTolerance = off_crashTolerance;
-                breakingForce = off_breakingForce;
-                breakingTorque = off_breakingTorque;
+                part.crashTolerance = off_crashTolerance;
+                part.breakingForce = off_breakingForce;
+                part.breakingTorque = off_breakingTorque;
             }
         }
         if (toggle_collision) {
-            collider.enabled = on;
-            collisionEnhancer.enabled = on;
-            terrainCollider.enabled = on;
+            part.collider.enabled = on;
+            part.collisionEnhancer.enabled = on;
+            part.terrainCollider.enabled = on;
         }
     }
 
@@ -180,7 +172,7 @@ public class MuMechToggle : MuMechPart
                 MeshCollider meshCollider = obj.gameObject.AddComponent<MeshCollider>();
                 meshCollider.sharedMesh = sharedMesh;
                 meshCollider.convex = true;
-                obj.parent = transform;
+                obj.parent = part.transform;
 
                 if (obj.name.StartsWith("mobile_node_collider")) {
                     mobileColliders.Add(obj);
@@ -192,18 +184,17 @@ public class MuMechToggle : MuMechPart
         }
     }
 
-    protected override void onPartAwake()
+    public override void OnAwake()
     {
         FindTransforms();
         colliderizeChilds(model_transform);
-        base.onPartAwake();
     }
 
-    protected override void onPartLoad()
+    public override void OnLoad(ConfigNode config)
     {
+        loaded = true;
         FindTransforms();
         colliderizeChilds(model_transform);
-        base.onPartLoad();
     }
 
     protected void DebugCollider(MeshCollider collider)
@@ -227,19 +218,19 @@ public class MuMechToggle : MuMechPart
     protected void AttachToParent(Transform obj)
     {
         if (rotateJoint) {
-            var pivot = transform.TransformPoint(rotatePivot);
-            var raxis = transform.TransformDirection(rotateAxis);
+            var pivot = part.transform.TransformPoint(rotatePivot);
+            var raxis = part.transform.TransformDirection(rotateAxis);
             float sign = 1;
             if (invertSymmetry) {
                 //FIXME is this actually desired?
-                sign = ((isSymmMaster() || (symmetryCounterparts.Count != 1)) ? 1 : -1);
+                sign = ((isSymmMaster() || (part.symmetryCounterparts.Count != 1)) ? 1 : -1);
             }
             obj.RotateAround(pivot, raxis, sign * rotation);
         } else if (translateJoint) {
-            var taxis = transform.TransformDirection(translateAxis.normalized);
+            var taxis = part.transform.TransformDirection(translateAxis.normalized);
             obj.Translate(taxis * -(translation - translateMin), Space.Self);//XXX double check sign!
         }
-        obj.parent = parent.transform;
+        obj.parent = part.parent.transform;
     }
 
     protected void reparentFriction(Transform obj)
@@ -254,7 +245,7 @@ public class MuMechToggle : MuMechPart
                     DebugCollider(tmp);
                 }
             }
-            if (child.name.StartsWith("fixed_node_collider") && (parent != null)) {
+            if (child.name.StartsWith("fixed_node_collider") && (part.parent != null)) {
                 print("Toggle: reparenting collider " + child.name);
                 AttachToParent(child);
             }
@@ -268,11 +259,11 @@ public class MuMechToggle : MuMechPart
 
     protected void BuildAttachments()
     {
-        if (findAttachNodeByPart(parent).id.Contains(bottomNode)
-            || attachMode == AttachModes.SRF_ATTACH) {
+        if (part.findAttachNodeByPart(part.parent).id.Contains(bottomNode)
+            || part.attachMode == AttachModes.SRF_ATTACH) {
             if (fixedMesh != "") {
                 Transform fix = model_transform.FindChild(fixedMesh);
-                if ((fix != null) && (parent != null)) {
+                if ((fix != null) && (part.parent != null)) {
                     AttachToParent(fix);
                 }
             }
@@ -284,48 +275,65 @@ public class MuMechToggle : MuMechPart
             if (translateJoint)
                 translateAxis *= -1;
         }
-        reparentFriction(transform);
+        reparentFriction(part.transform);
     }
 
     protected void FindTransforms()
     {
-        model_transform = transform.FindChild("model");
+        model_transform = part.transform.FindChild("model");
         on_model_transform = model_transform.FindChild(on_model);
         off_model_transform = model_transform.FindChild(off_model);
         rotate_model_transform = model_transform.FindChild(rotate_model);
         translate_model_transform = model_transform.FindChild(translate_model);
     }
 
-    protected override void onPartStart()
+    private void ParseCData()
     {
-        base.onPartStart();
-        stackIcon.SetIcon(DefaultIcons.STRUT);
+        Debug.Log(String.Format("[IR] not 'loaded': checking cData"));
+        string customPartData = part.customPartData;
+        if (customPartData != null && customPartData != "") {
+            Debug.Log(String.Format("[IR] old cData found"));
+            var settings = (Dictionary<string, object>)KSP.IO.IOUtils.DeserializeFromBinary(Convert.FromBase64String(customPartData.Replace("*", "=").Replace("|", "/")));
+            ServoName = (string)settings["name"];
+            GroupName = (string)settings["group"];
+            ForwardKey = (string)settings["key"];
+            ReverseKey = (string)settings["revkey"];
+
+            rotation = (float)settings["rot"];
+            translation = (float)settings["trans"];
+        }
+    }
+
+    public override void OnStart(PartModule.StartState state)
+    {
+        part.stackIcon.SetIcon(DefaultIcons.STRUT);
         if (vessel == null) {
             return;
         }
+        if (!loaded) {
+            loaded = true;
+            ParseCData();
+        }
+        creationOrder = s_creationOrder++;
         FindTransforms();
         BuildAttachments();
-        on = true;
+        setupJoints();
+        on = false;
         updateState();
     }
-
-    protected override void onPartAttach(Part parent)
+/*
+    public override void OnAttach(Part parent)
     {
         on = false;
         updateState();
     }
 
-    protected override void onPartDetach()
+    public override void OnDetach()
     {
         on = true;
         updateState();
     }
-
-    protected override void onEditorUpdate()
-    {
-        base.onEditorUpdate();
-    }
-
+*/
     protected bool setupJoints()
     {
         if (!gotOrig) {
@@ -336,14 +344,14 @@ public class MuMechToggle : MuMechPart
                 origTranslation = translate_model_transform.localPosition;
             }
             if (translateJoint) {
-                origTranslation = transform.localPosition;
+                origTranslation = part.transform.localPosition;
             }
             if (rotateJoint || translateJoint) {
-                if (attachJoint != null) {
-                    GameObject.Destroy(attachJoint);
+                if (part.attachJoint != null) {
+                    GameObject.Destroy(part.attachJoint);
                     ConfigurableJoint newJoint = gameObject.AddComponent<ConfigurableJoint>();
-                    newJoint.breakForce = breakingForce;
-                    newJoint.breakTorque = breakingTorque;
+                    newJoint.breakForce = part.breakingForce;
+                    newJoint.breakTorque = part.breakingTorque;
                     newJoint.axis = rotateJoint ? rotateAxis : translateAxis;
                     newJoint.secondaryAxis = (newJoint.axis == Vector3.up) ? Vector3.forward : Vector3.up;
                     SoftJointLimit spring = new SoftJointLimit();
@@ -381,8 +389,8 @@ public class MuMechToggle : MuMechPart
                     newJoint.projectionDistance = 0;
                     newJoint.projectionAngle = 0;
 
-                    newJoint.connectedBody = parent.Rigidbody;
-                    attachJoint = newJoint;
+                    newJoint.connectedBody = part.parent.Rigidbody;
+                    part.attachJoint = newJoint;
                     gotOrig = true;
                     return true;
                 }
@@ -394,39 +402,29 @@ public class MuMechToggle : MuMechPart
         return false;
     }
 
-    protected override void onFlightStart()
+    public override void OnUpdate()
     {
-        FindTransforms();
-        BuildAttachments();
-        setupJoints();
-        on = false;
-        updateState();
-    }
-
-    protected override void onPartUpdate()
-    {
-        if (connected && Input.GetKeyDown(onKey) && (vessel == FlightGlobals.ActiveVessel) && InputLockManager.IsUnlocked(ControlTypes.LINEAR)) {
+        if (part.isConnected && Input.GetKeyDown(onKey) && (vessel == FlightGlobals.ActiveVessel) && InputLockManager.IsUnlocked(ControlTypes.LINEAR)) {
             on = !on;
             updateState();
         }
     }
 
-    protected override bool onPartActivate()
+    public override void OnActive()
     {
         if (onActivate) {
             on = true;
             updateState();
         }
-        return true;
     }
-
+/*
     protected override void onJointDisable()
     {
         rotationDelta = rotationLast = rotation;
         translationDelta = translation;
         gotOrig = false;
     }
-
+*/
     protected void updateRotation(float speed, bool reverse, int mask)
     {
         rotation += TimeWarp.fixedDeltaTime * speed * (reverse ? -1 : 1);
@@ -505,8 +503,8 @@ public class MuMechToggle : MuMechPart
         }
         if (Math.Abs(rotation - rotationDelta) > 120) {
             rotationDelta = rotationLast;
-            attachJoint.connectedBody = null;
-            attachJoint.connectedBody = parent.Rigidbody;
+            part.attachJoint.connectedBody = null;
+            part.attachJoint.connectedBody = part.parent.Rigidbody;
         }
     }
 
@@ -533,12 +531,14 @@ public class MuMechToggle : MuMechPart
     {
         if ((rotationChanged != 0) && (rotateJoint || rotate_model_transform != null)) {
             if (rotateJoint) {
-                SoftJointLimit tmp = ((ConfigurableJoint)attachJoint).lowAngularXLimit;
-                tmp.limit = (invertSymmetry ? ((isSymmMaster() || (symmetryCounterparts.Count != 1)) ? 1 : -1) : 1) * (rotation - rotationDelta);
-                ((ConfigurableJoint)attachJoint).lowAngularXLimit = ((ConfigurableJoint)attachJoint).highAngularXLimit = tmp;
+                SoftJointLimit tmp = ((ConfigurableJoint)part.attachJoint).lowAngularXLimit;
+                tmp.limit = (invertSymmetry ? ((isSymmMaster() || (part.symmetryCounterparts.Count != 1)) ? 1 : -1) : 1) * (rotation - rotationDelta);
+                tmp.limit = (rotation - rotationDelta);
+                ((ConfigurableJoint)part.attachJoint).lowAngularXLimit = ((ConfigurableJoint)part.attachJoint).highAngularXLimit = tmp;
                 rotationLast = rotation;
             } else {
-                Quaternion curRot = Quaternion.AngleAxis((invertSymmetry ? ((isSymmMaster() || (symmetryCounterparts.Count != 1)) ? 1 : -1) : 1) * rotation, rotateAxis);
+                //FIXME Quaternion curRot = Quaternion.AngleAxis(rotation, rotateAxis);
+                Quaternion curRot = Quaternion.AngleAxis(rotation, rotateAxis);
                 rotate_model_transform.localRotation = curRot;
             }
         }
@@ -548,16 +548,16 @@ public class MuMechToggle : MuMechPart
     {
         if ((translationChanged != 0) && (translateJoint || translate_model_transform != null)) {
             if (translateJoint) {
-                ((ConfigurableJoint)attachJoint).targetPosition = -Vector3.right * (translation - translationDelta);
+                ((ConfigurableJoint)part.attachJoint).targetPosition = -Vector3.right * (translation - translationDelta);
             } else {
                 translate_model_transform.localPosition = origTranslation + translateAxis.normalized * (translation - translationDelta);
             }
         }
     }
 
-    protected override void onPartFixedUpdate()
+    public override void OnFixedUpdate()
     {
-        if (isRotationLock || state == PartStates.DEAD) {
+        if (isMotionLock || part.State == PartStates.DEAD) {
             return;
         }
 
@@ -577,14 +577,14 @@ public class MuMechToggle : MuMechPart
         translationChanged = 0;
 
         if (vessel != null) {
-            UpdateOrgPosAndRot(vessel.rootPart);
-            foreach (Part child in FindChildParts<Part>(true)) {
+            part.UpdateOrgPosAndRot(vessel.rootPart);
+            foreach (Part child in part.FindChildParts<Part>(true)) {
                 child.UpdateOrgPosAndRot(vessel.rootPart);
             }
         }
     }
 
-    protected override void onPartDeactivate()
+    public override void OnInactive()
     {
         on = false;
         updateState();
