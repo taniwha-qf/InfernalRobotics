@@ -574,7 +574,7 @@ public class MuMechToggle : PartModule
         }
     }
 
-    public override void OnFixedUpdate()
+    public void FixedUpdate()
     {
         if (isMotionLock || part.State == PartStates.DEAD) {
             return;
