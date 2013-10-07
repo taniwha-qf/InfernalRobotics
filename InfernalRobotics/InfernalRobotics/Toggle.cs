@@ -106,6 +106,9 @@ public class MuMechToggle : PartModule
     private static int s_creationOrder = 0;
     public int creationOrder = 0;
 
+    Callback EditorAttachChain;
+    Callback EditorDetachChain;
+
     public bool isSymmMaster()
     {
         for (int i = 0; i < part.symmetryCounterparts.Count; i++) {
@@ -190,8 +193,22 @@ public class MuMechToggle : PartModule
         colliderizeChilds(model_transform);
     }
 
+    public void OnEditorAttach()
+    {
+        EditorAttachChain();
+    }
+
+    public void OnEditorDetach()
+    {
+        EditorDetachChain();
+    }
+
     public override void OnLoad(ConfigNode config)
     {
+        EditorAttachChain = part.OnEditorAttach;
+        part.OnEditorAttach = OnEditorAttach;
+        EditorDetachChain = part.OnEditorDetach;
+        part.OnEditorDetach = OnEditorDetach;
         loaded = true;
         FindTransforms();
         colliderizeChilds(model_transform);
@@ -301,6 +318,7 @@ public class MuMechToggle : PartModule
 
             rotation = (float)settings["rot"];
             translation = (float)settings["trans"];
+            part.customPartData = "";
         }
     }
 
@@ -313,12 +331,12 @@ public class MuMechToggle : PartModule
         if (!loaded) {
             loaded = true;
             ParseCData();
+            on = false;
         }
         creationOrder = s_creationOrder++;
         FindTransforms();
         BuildAttachments();
         setupJoints();
-        on = false;
         updateState();
     }
 /*
@@ -473,6 +491,7 @@ public class MuMechToggle : PartModule
             rotationChanged |= 2;
             translationChanged |= 2;
         }
+        moveFlags = 0;
     }
 
     protected void checkRotationLimits()
