@@ -41,7 +41,7 @@ namespace MuMech
 			var group_map = new Dictionary<string, int>();
 
 			foreach (Part p in v.Parts) {
-				foreach (MuMechToggle servo in p.Modules.OfType<MuMechToggle>()) {
+				foreach (var servo in p.Modules.OfType<MuMechToggle>()) {
 					if (!group_map.ContainsKey(servo.GroupName)) {
 						groups.Add(new Group(servo));
 						group_map[servo.GroupName] = groups.Count - 1;
@@ -78,9 +78,10 @@ namespace MuMech
 
 				GUILayout.Label(g.name, GUILayout.ExpandWidth(true));
 				int forceFlags = 0;
-				forceFlags |= (GUILayout.RepeatButton("<", GUILayout.Width(20))?1:0);
-				forceFlags |= (GUILayout.RepeatButton("O", GUILayout.Width(20))?4:0);
-				forceFlags |= (GUILayout.RepeatButton(">", GUILayout.Width(20))?2:0);
+				var width = GUILayout.Width(20);
+				forceFlags |= GUILayout.RepeatButton("<", width) ? 1 : 0;
+				forceFlags |= GUILayout.RepeatButton("O", width) ? 4 : 0;
+				forceFlags |= GUILayout.RepeatButton(">", width) ? 2 : 0;
 				foreach (MuMechToggle servo in g.servos) {
 					servo.moveFlags &= ~7;
 					servo.moveFlags |= forceFlags;
@@ -106,7 +107,8 @@ namespace MuMech
                 winPos = new Rect(Screen.width / 2, Screen.height / 2, 10, 10);
             }
             GUI.skin = MuUtils.DefaultSkin;
-            winPos = GUILayout.Window(956, winPos, ControlWindow, "Servo Control",
+            winPos = GUILayout.Window(956, winPos, ControlWindow,
+									  "Servo Control",
 									  GUILayout.MinWidth(150));
 		}
 	}
