@@ -491,7 +491,6 @@ public class MuMechToggle : PartModule
             rotationChanged |= 2;
             translationChanged |= 2;
         }
-        moveFlags = 0;
     }
 
     protected void checkRotationLimits()

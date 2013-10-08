@@ -77,10 +77,13 @@ namespace MuMech
 				GUILayout.BeginHorizontal();
 
 				GUILayout.Label(g.name, GUILayout.ExpandWidth(true));
-				int forceFlags = (GUILayout.RepeatButton("<", GUILayout.Width(20))?1:0) + (GUILayout.RepeatButton("O", GUILayout.Width(20))?4:0) + (GUILayout.RepeatButton(">", GUILayout.Width(20))?2:0);
+				int forceFlags = 0;
+				forceFlags |= (GUILayout.RepeatButton("<", GUILayout.Width(20))?1:0);
+				forceFlags |= (GUILayout.RepeatButton("O", GUILayout.Width(20))?4:0);
+				forceFlags |= (GUILayout.RepeatButton(">", GUILayout.Width(20))?2:0);
 				foreach (MuMechToggle servo in g.servos) {
+					servo.moveFlags &= ~7;
 					servo.moveFlags |= forceFlags;
-					Debug.Log(String.Format("[IR GUI] {0} {1} {2}", g.name, servo.ServoName, servo.moveFlags));
 				}
 
 				GUILayout.EndHorizontal();
@@ -93,7 +96,8 @@ namespace MuMech
 
 		void OnGUI()
 		{
-			Debug.Log("[IR GUI] ongui");
+			// This particular test isn't needed due to the GUI being enabled
+			// and disabled as appropriate, but it saves potential NREs.
 			if (servo_groups == null)
 				return;
 			if (InputLockManager.IsLocked(ControlTypes.LINEAR))
@@ -102,7 +106,8 @@ namespace MuMech
                 winPos = new Rect(Screen.width / 2, Screen.height / 2, 10, 10);
             }
             GUI.skin = MuUtils.DefaultSkin;
-            winPos = GUILayout.Window(956, winPos, ControlWindow, "Servo Control", GUILayout.MinWidth(150));
+            winPos = GUILayout.Window(956, winPos, ControlWindow, "Servo Control",
+									  GUILayout.MinWidth(150));
 		}
 	}
 }
