@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
+namespace MuMech {
 public class MuMechToggle : PartModule
 {
     [KSPField(isPersistant = false)] public bool toggle_drag = false;
@@ -106,9 +107,6 @@ public class MuMechToggle : PartModule
     private static int s_creationOrder = 0;
     public int creationOrder = 0;
 
-    Callback EditorAttachChain;
-    Callback EditorDetachChain;
-
     public bool isSymmMaster()
     {
         for (int i = 0; i < part.symmetryCounterparts.Count; i++) {
@@ -193,22 +191,8 @@ public class MuMechToggle : PartModule
         colliderizeChilds(model_transform);
     }
 
-    public void OnEditorAttach()
-    {
-        EditorAttachChain();
-    }
-
-    public void OnEditorDetach()
-    {
-        EditorDetachChain();
-    }
-
     public override void OnLoad(ConfigNode config)
     {
-        EditorAttachChain = part.OnEditorAttach;
-        part.OnEditorAttach = OnEditorAttach;
-        EditorDetachChain = part.OnEditorDetach;
-        part.OnEditorDetach = OnEditorDetach;
         loaded = true;
         FindTransforms();
         colliderizeChilds(model_transform);
@@ -304,7 +288,7 @@ public class MuMechToggle : PartModule
         translate_model_transform = model_transform.FindChild(translate_model);
     }
 
-    private void ParseCData()
+    public void ParseCData()
     {
         Debug.Log(String.Format("[IR] not 'loaded': checking cData"));
         string customPartData = part.customPartData;
@@ -575,6 +559,8 @@ public class MuMechToggle : PartModule
 
     public void FixedUpdate()
     {
+        if (HighLogic.LoadedScene != GameScenes.FLIGHT)
+            return;
         if (isMotionLock || part.State == PartStates.DEAD) {
             return;
         }
@@ -607,4 +593,5 @@ public class MuMechToggle : PartModule
         on = false;
         updateState();
     }
+}
 }

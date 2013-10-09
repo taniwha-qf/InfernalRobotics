@@ -7,7 +7,7 @@ using MuMech;
 
 namespace MuMech
 {
-	[KSPAddon(KSPAddon.Startup.Flight, false)]
+	[KSPAddon(KSPAddon.Startup.EveryScene, false)]
 	public class MuMechGUI : MonoBehaviour
 	{
 		public class Group
@@ -40,6 +40,12 @@ namespace MuMech
 		protected static bool resetWin;
 		protected static Vector2 editorScroll;
 		List<Group> servo_groups;
+		protected static MuMechGUI gui_controller;
+
+		public static MuMechGUI gui
+		{
+			get { return gui_controller; }
+		}
 
 		static void move_servo(Group from, Group to, MuMechToggle servo)
 		{
@@ -49,6 +55,60 @@ namespace MuMech
 			servo.ForwardKey = to.ForwardKey;
 			servo.ReverseKey = to.ReverseKey;
 		}
+
+		public static void add_servo(MuMechToggle servo)
+		{
+			if (!gui)
+				return;
+			gui.enabled = true;
+			if (servo.part.customPartData != null
+				&& servo.part.customPartData != "") {
+				servo.ParseCData();
+			}
+			if (gui.servo_groups == null)
+				gui.servo_groups = new List<Group>();
+			Group group = null;
+			if (servo.GroupName != null && servo.GroupName != "") {
+				for (int i = 0; i < gui.servo_groups.Count; i++) {
+					if (servo.GroupName == gui.servo_groups[i].name) {
+						group = gui.servo_groups[i];
+						break;
+					}
+				}
+				if (group == null) {
+					gui.servo_groups.Add(new Group(servo));
+					return;
+				}
+			}
+			if (group == null) {
+				if (gui.servo_groups.Count < 1) {
+					gui.servo_groups.Add(new Group());
+				}
+				group = gui.servo_groups[gui.servo_groups.Count - 1];
+			}
+
+			group.servos.Add(servo);
+			servo.GroupName = group.name;
+			servo.ForwardKey = group.ForwardKey;
+			servo.ReverseKey = group.ReverseKey;
+		}
+
+		public static void remove_servo(MuMechToggle servo)
+		{
+			if (!gui)
+				return;
+			if (gui.servo_groups == null)
+				return;
+			int num = 0;
+			foreach (var group in gui.servo_groups) {
+				if (group.name == servo.GroupName) {
+					group.servos.Remove(servo);
+				}
+				num += group.servos.Count;
+			}
+			gui.enabled = num > 0;
+		}
+
 
 		void onVesselChange(Vessel v)
 		{
@@ -62,6 +122,10 @@ namespace MuMech
 
 			foreach (Part p in v.Parts) {
 				foreach (var servo in p.Modules.OfType<MuMechToggle>()) {
+					if (servo.part.customPartData != null
+						&& servo.part.customPartData != "") {
+						servo.ParseCData();
+					}
 					if (!group_map.ContainsKey(servo.GroupName)) {
 						groups.Add(new Group(servo));
 						group_map[servo.GroupName] = groups.Count - 1;
@@ -77,16 +141,45 @@ namespace MuMech
 				enabled = true;
 			}
 		}
+
+		void onPartAttach(GameEvents.HostTargetAction<Part,Part> host_target)
+		{
+			Part p = host_target.host;
+			foreach (var servo in p.Modules.OfType<MuMechToggle>()) {
+				add_servo(servo);
+			}
+		}
+
+		void onPartRemove(GameEvents.HostTargetAction<Part,Part> host_target)
+		{
+			Part p = host_target.target;
+			foreach (var servo in p.Modules.OfType<MuMechToggle>()) {
+				remove_servo(servo);
+			}
+		}
+
 		void Awake()
 		{
 			Debug.Log("[IR GUI] awake");
 			enabled = false;
-			GameEvents.onVesselChange.Add(onVesselChange);
+			var scene = HighLogic.LoadedScene;
+			if (scene == GameScenes.FLIGHT) {
+				GameEvents.onVesselChange.Add(onVesselChange);
+				gui_controller = this;
+			} else if (scene == GameScenes.EDITOR) {
+				GameEvents.onPartAttach.Add(onPartAttach);
+				GameEvents.onPartRemove.Add(onPartRemove);
+				gui_controller = this;
+			} else {
+				gui_controller = null;
+			}
 		}
 		void OnDestroy()
 		{
 			Debug.Log("[IR GUI] destroy");
 			GameEvents.onVesselChange.Remove(onVesselChange);
+			GameEvents.onPartAttach.Remove(onPartAttach);
+			GameEvents.onPartRemove.Remove(onPartRemove);
 		}
 
 		private void ControlWindow(int windowID)
@@ -259,9 +352,20 @@ namespace MuMech
 				resetWin = false;
 			}
             GUI.skin = MuUtils.DefaultSkin;
-            controlWinPos = GUILayout.Window(956, controlWinPos, ControlWindow,
-											 "Servo Control",
-											 GUILayout.MinWidth(150));
+			var scene = HighLogic.LoadedScene;
+			if (scene == GameScenes.FLIGHT) {
+				controlWinPos = GUILayout.Window(956, controlWinPos,
+												 ControlWindow,
+												 "Servo Control",
+												 GUILayout.MinWidth(150));
+			} else if (scene == GameScenes.EDITOR) {
+				var height = GUILayout.Height(Screen.height / 2);
+				editorWinPos = GUILayout.Window(957, editorWinPos,
+												EditorWindow,
+												"Servo Configuration",
+												GUILayout.Width(250),
+												height);
+			}
 		}
 	}
 }
