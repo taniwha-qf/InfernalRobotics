@@ -25,10 +25,30 @@ namespace MuMech
 				servos = new List<MuMechToggle>();
 				servos.Add(servo);
 			}
+
+			public Group()
+			{
+				this.name = "";
+				ForwardKey = "";
+				ReverseKey = "";
+				servos = new List<MuMechToggle>();
+			}
 		}
 
-		protected static Rect winPos;
+		protected static Rect controlWinPos;
+		protected static Rect editorWinPos;
+		protected static bool resetWin;
+		protected static Vector2 editorScroll;
 		List<Group> servo_groups;
+
+		static void move_servo(Group from, Group to, MuMechToggle servo)
+		{
+			to.servos.Add(servo);
+			from.servos.Remove(servo);
+			servo.GroupName = to.name;
+			servo.ForwardKey = to.ForwardKey;
+			servo.ReverseKey = to.ReverseKey;
+		}
 
 		void onVesselChange(Vessel v)
 		{
@@ -95,6 +115,129 @@ namespace MuMech
 			GUI.DragWindow();
 		}
 
+		void EditorWindow(int windowID)
+		{
+			var expand = GUILayout.ExpandWidth(true);
+			var width20 = GUILayout.Width(20);
+			var width40 = GUILayout.Width(40);
+			var width60 = GUILayout.Width(60);
+			var maxHeight = GUILayout.MaxHeight(Screen.height / 2);
+
+			Vector2 mousePos = Input.mousePosition;
+			mousePos.y = Screen.height - mousePos.y;
+
+			editorScroll = GUILayout.BeginScrollView(editorScroll, false,
+													 false, maxHeight);
+
+			GUILayout.BeginVertical();
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Group Name", expand);
+			GUILayout.Label("Keys", width40);
+			if (servo_groups.Count > 1) {
+				GUILayout.Space(60);
+			}
+			GUILayout.EndHorizontal();
+
+			for (int i = 0; i < servo_groups.Count; i++) {
+				Group grp = servo_groups[i];
+
+				GUILayout.BeginHorizontal();
+				string tmp = GUILayout.TextField(grp.name, expand);
+				if (grp.name != tmp) {
+					grp.name = tmp;
+				}
+				tmp = GUILayout.TextField(grp.ForwardKey, width20);
+				if (grp.ForwardKey != tmp) {
+					grp.ForwardKey = tmp;
+				}
+				tmp = GUILayout.TextField(grp.ReverseKey, width20);
+				if (grp.ReverseKey != tmp) {
+					grp.ReverseKey = tmp;
+				}
+				if (i > 0) {
+					if (GUILayout.Button("Remove", width60)) {
+						foreach (var servo in grp.servos) {
+							move_servo(grp, servo_groups[i - 1], servo);
+						}
+						servo_groups.RemoveAt(i);
+						resetWin = true;
+						return;
+					}
+				} else {
+					if (servo_groups.Count > 1) {
+						GUILayout.Space(60);
+					}
+				}
+				GUILayout.EndHorizontal();
+
+				GUILayout.BeginHorizontal();
+
+				GUILayout.Space(20);
+
+				GUILayout.BeginVertical();
+
+				GUILayout.BeginHorizontal();
+				GUILayout.Label("Servo Name", expand);
+				GUILayout.Label("Rotate", width40);
+				if (servo_groups.Count > 1) {
+					GUILayout.Label("Group", width40);
+				}
+				GUILayout.EndHorizontal();
+
+				foreach (var servo in grp.servos) {
+					GUILayout.BeginHorizontal();
+					servo.ServoName = GUILayout.TextField(servo.ServoName,
+														  expand);
+					if (editorWinPos.Contains(mousePos)) {
+						var last = GUILayoutUtility.GetLastRect();
+						var pos = Event.current.mousePosition;
+						bool highlight = last.Contains(pos);
+						servo.part.SetHighlight(highlight);
+					}
+					if (GUILayout.Button("<", width20)) {
+						servo.transform.RotateAround(servo.transform.up,
+													 Mathf.PI / 4);
+					}
+					if (GUILayout.Button(">", width20)) {
+						servo.transform.RotateAround(servo.transform.up,
+													 -Mathf.PI / 4);
+					}
+					if (servo_groups.Count > 1) {
+						if (i > 0) {
+							if (GUILayout.Button("/\\", width20)) {
+								move_servo(grp, servo_groups[i - 1], servo);
+							}
+						} else {
+							GUILayout.Space(20);
+						}
+						if (i < (servo_groups.Count - 1)) {
+							if (GUILayout.Button("\\/", width20)) {
+								move_servo(grp, servo_groups[i + 1], servo);
+							}
+						} else {
+							GUILayout.Space(20);
+						}
+					}
+					GUILayout.EndHorizontal();
+				}
+
+				GUILayout.EndVertical();
+
+				GUILayout.EndHorizontal();
+			}
+
+			if (GUILayout.Button("Add new Group")) {
+				servo_groups.Add(new Group());
+			}
+
+			GUILayout.EndVertical();
+
+			GUILayout.EndScrollView();
+
+			GUI.DragWindow();
+		}
+
 		void OnGUI()
 		{
 			// This particular test isn't needed due to the GUI being enabled
@@ -103,13 +246,22 @@ namespace MuMech
 				return;
 			if (InputLockManager.IsLocked(ControlTypes.LINEAR))
 				return;
-            if (winPos.x == 0 && winPos.y == 0) {
-                winPos = new Rect(Screen.width / 2, Screen.height / 2, 10, 10);
+            if (controlWinPos.x == 0 && controlWinPos.y == 0) {
+                controlWinPos = new Rect(Screen.width / 2, Screen.height / 2,
+										 10, 10);
             }
+			if (editorWinPos.x == 0 && editorWinPos.y == 0) {
+				editorWinPos = new Rect(Screen.width - 260, 50, 10, 10);
+			}
+			if (resetWin) {
+				editorWinPos = new Rect(editorWinPos.x, editorWinPos.y,
+										10, 10);
+				resetWin = false;
+			}
             GUI.skin = MuUtils.DefaultSkin;
-            winPos = GUILayout.Window(956, winPos, ControlWindow,
-									  "Servo Control",
-									  GUILayout.MinWidth(150));
+            controlWinPos = GUILayout.Window(956, controlWinPos, ControlWindow,
+											 "Servo Control",
+											 GUILayout.MinWidth(150));
 		}
 	}
 }
