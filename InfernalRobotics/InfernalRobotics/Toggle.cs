@@ -593,5 +593,69 @@ public class MuMechToggle : PartModule
         on = false;
         updateState();
     }
+
+    public void SetLock(bool locked)
+    {
+        isMotionLock = locked;
+        Events["Activate"].active = !isMotionLock;
+        Events["Deactivate"].active = isMotionLock;
+    }
+
+    [KSPEvent(guiActive = true, guiName = "Engage Lock")]
+    public void Activate()
+    {
+        SetLock(true);
+    }
+
+    [KSPEvent(guiActive = true, guiName = "Disengage Lock", active = false)]
+    public void Deactivate()
+    {
+        SetLock(false);
+    }
+
+    [KSPAction("Engage Lock")]
+    public void LockToggle(KSPActionParam param)
+    {
+        SetLock(!isMotionLock);
+    }
+
+    [KSPAction("Move +")]
+    public void MovePlusAction(KSPActionParam param)
+    {
+        switch (param.type) {
+            case KSPActionType.Activate:
+                moveFlags |= 0x100;
+                break;
+            case KSPActionType.Deactivate:
+                moveFlags &= ~0x100;
+                break;
+        }
+    }
+
+    [KSPAction("Move -")]
+    public void MoveMinusAction(KSPActionParam param)
+    {
+        switch (param.type) {
+            case KSPActionType.Activate:
+                moveFlags |= 0x200;
+                break;
+            case KSPActionType.Deactivate:
+                moveFlags &= ~0x200;
+                break;
+        }
+    }
+
+    [KSPAction("Move Center")]
+    public void MoveCenterAction(KSPActionParam param)
+    {
+        switch (param.type) {
+            case KSPActionType.Activate:
+                moveFlags |= 0x400;
+                break;
+            case KSPActionType.Deactivate:
+                moveFlags &= ~0x400;
+                break;
+        }
+    }
 }
 }
