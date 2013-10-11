@@ -84,6 +84,10 @@ public class MuMechToggle : PartModule
 
     [KSPField(isPersistant = false)] public bool debugColliders = false;
 
+    [KSPField(isPersistant = false)] public string motorSndPath = "";
+    public FXGroup fxSndMotor;
+    public bool isPlaying = false;
+
     protected Quaternion origRotation;
     protected Vector3 origTranslation;
     protected bool gotOrig = false;
@@ -115,6 +119,43 @@ public class MuMechToggle : PartModule
             }
         }
         return true;
+    }
+
+    //credit for sound support goes to the creators of the Kerbal Attachment
+    //System
+    public static bool createFXSound(Part part, FXGroup group, string sndPath,
+                                     bool loop, float maxDistance = 10f)
+    {
+        if (sndPath == "") {
+            group.audio = null;
+            return false;
+        }
+        Debug.Log("Loading sounds : " + sndPath);
+        if (!GameDatabase.Instance.ExistsAudioClip(sndPath)) {
+            Debug.Log("Sound not found in the game database!");
+            //ScreenMessages.PostScreenMessage("Sound file : " + sndPath + " as not been found, please check your Infernal Robotics installation!", 10, ScreenMessageStyle.UPPER_CENTER);
+            group.audio = null;
+            return false;
+        }
+        group.audio = part.gameObject.AddComponent<AudioSource>();
+        group.audio.volume = GameSettings.SHIP_VOLUME;
+        group.audio.rolloffMode = AudioRolloffMode.Logarithmic;
+        group.audio.dopplerLevel = 0f;
+        group.audio.panLevel = 1f;
+        group.audio.maxDistance = maxDistance;
+        group.audio.loop = loop;
+        group.audio.playOnAwake = false;
+        group.audio.clip = GameDatabase.Instance.GetAudioClip(sndPath);
+        Debug.Log("Sound successfully loaded.");
+        return true;
+    }
+
+    private void playAudio()
+    {
+        if (!isPlaying && fxSndMotor.audio) {
+            fxSndMotor.audio.Play();
+            isPlaying = true;
+        }
     }
 
     public void updateState()
@@ -317,6 +358,7 @@ public class MuMechToggle : PartModule
             ParseCData();
             on = false;
         }
+        createFXSound(part, fxSndMotor, motorSndPath, true, 10f);
         creationOrder = s_creationOrder++;
         FindTransforms();
         BuildAttachments();
@@ -411,12 +453,14 @@ public class MuMechToggle : PartModule
     {
         rotation += TimeWarp.fixedDeltaTime * speed * (reverse ? -1 : 1);
         rotationChanged |= mask;
+        playAudio();
     }
 
     protected void updateTranslation(float speed, bool reverse, int mask)
     {
         translation += TimeWarp.fixedDeltaTime * speed * (reverse ? -1 : 1);
         translationChanged |= mask;
+        playAudio();
     }
 
     protected bool keyPressed(string key)
@@ -460,6 +504,12 @@ public class MuMechToggle : PartModule
             translation -= Mathf.Sign(translation) * Mathf.Min(Mathf.Abs(keyTranslateSpeed * TimeWarp.deltaTime), Mathf.Abs(translation));
             rotationChanged |= 2;
             translationChanged |= 2;
+            playAudio();
+        }
+
+        if (moveFlags == 0 && !on) {
+            fxSndMotor.audio.Stop();
+            isPlaying = false;
         }
     }
 
