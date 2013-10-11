@@ -158,10 +158,22 @@ namespace MuMech
 			}
 		}
 
+		void onHideUI()
+		{
+			enabled = false;
+		}
+
+		void onShowUI()
+		{
+			enabled = servo_groups != null;
+		}
+
 		void Awake()
 		{
 			Debug.Log("[IR GUI] awake");
 			enabled = false;
+			GameEvents.onHideUI.Add(onHideUI);
+			GameEvents.onShowUI.Add(onShowUI);
 			var scene = HighLogic.LoadedScene;
 			if (scene == GameScenes.FLIGHT) {
 				GameEvents.onVesselChange.Add(onVesselChange);
@@ -177,6 +189,8 @@ namespace MuMech
 		void OnDestroy()
 		{
 			Debug.Log("[IR GUI] destroy");
+			GameEvents.onHideUI.Remove(onHideUI);
+			GameEvents.onShowUI.Remove(onShowUI);
 			GameEvents.onVesselChange.Remove(onVesselChange);
 			GameEvents.onPartAttach.Remove(onPartAttach);
 			GameEvents.onPartRemove.Remove(onPartRemove);
