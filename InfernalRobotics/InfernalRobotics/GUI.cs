@@ -214,9 +214,12 @@ namespace MuMech
 				forceFlags |= GUILayout.RepeatButton("O", width20) ? 4 : 0;
 				forceFlags |= GUILayout.RepeatButton(">", width20) ? 2 : 0;
 				g.speed = GUILayout.TextField(g.speed, width40);
-				float speed = float.Parse(g.speed);
+				float speed;
+				bool speed_ok = float.TryParse(g.speed, out speed);
 				foreach (MuMechToggle servo in g.servos) {
-					servo.customSpeed = speed;
+					if (speed_ok) {
+						servo.customSpeed = speed;
+					}
 					servo.moveFlags &= ~7;
 					servo.moveFlags |= forceFlags;
 				}
