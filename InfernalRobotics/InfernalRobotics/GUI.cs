@@ -119,6 +119,7 @@ namespace MuMech
 
 			servo_groups = null;
 			enabled = false;
+			resetWin = true;
 
 			var groups = new List<Group>();
 			var group_map = new Dictionary<string, int>();
@@ -371,6 +372,8 @@ namespace MuMech
 				editorWinPos = new Rect(Screen.width - 260, 50, 10, 10);
 			}
 			if (resetWin) {
+				controlWinPos = new Rect(controlWinPos.x, controlWinPos.y,
+										 10, 10);
 				editorWinPos = new Rect(editorWinPos.x, editorWinPos.y,
 										10, 10);
 				resetWin = false;
