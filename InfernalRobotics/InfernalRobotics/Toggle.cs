@@ -404,14 +404,6 @@ public class MuMechToggle : PartModule
         return false;
     }
 
-    public override void OnUpdate()
-    {
-        if (part.isConnected && Input.GetKeyDown(onKey) && (vessel == FlightGlobals.ActiveVessel) && InputLockManager.IsUnlocked(ControlTypes.LINEAR)) {
-            on = !on;
-            updateState();
-        }
-    }
-
     public override void OnActive()
     {
         if (onActivate) {
@@ -446,6 +438,10 @@ public class MuMechToggle : PartModule
 
     protected void checkInputs()
     {
+        if (part.isConnected && keyPressed(onKey)) {
+            on = !on;
+            updateState();
+        }
 
         if (on && (onRotateSpeed != 0)) {
             updateRotation(+onRotateSpeed, reversedRotationOn, 1);
