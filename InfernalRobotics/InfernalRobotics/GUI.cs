@@ -16,12 +16,14 @@ namespace MuMech
 			public List<MuMechToggle> servos;
 			public string ForwardKey;
 			public string ReverseKey;
+			public string speed;
 
 			public Group(MuMechToggle servo)
 			{
 				this.name = servo.GroupName;
 				ForwardKey = servo.ForwardKey;
 				ReverseKey = servo.ReverseKey;
+				speed = servo.customSpeed.ToString("g");
 				servos = new List<MuMechToggle>();
 				servos.Add(servo);
 			}
@@ -31,6 +33,7 @@ namespace MuMech
 				this.name = "";
 				ForwardKey = "";
 				ReverseKey = "";
+				speed = "1";
 				servos = new List<MuMechToggle>();
 			}
 		}
@@ -205,11 +208,15 @@ namespace MuMech
 
 				GUILayout.Label(g.name, GUILayout.ExpandWidth(true));
 				int forceFlags = 0;
-				var width = GUILayout.Width(20);
-				forceFlags |= GUILayout.RepeatButton("<", width) ? 1 : 0;
-				forceFlags |= GUILayout.RepeatButton("O", width) ? 4 : 0;
-				forceFlags |= GUILayout.RepeatButton(">", width) ? 2 : 0;
+				var width20 = GUILayout.Width(20);
+				var width40 = GUILayout.Width(40);
+				forceFlags |= GUILayout.RepeatButton("<", width20) ? 1 : 0;
+				forceFlags |= GUILayout.RepeatButton("O", width20) ? 4 : 0;
+				forceFlags |= GUILayout.RepeatButton(">", width20) ? 2 : 0;
+				g.speed = GUILayout.TextField(g.speed, width40);
+				float speed = float.Parse(g.speed);
 				foreach (MuMechToggle servo in g.servos) {
+					servo.customSpeed = speed;
 					servo.moveFlags &= ~7;
 					servo.moveFlags |= forceFlags;
 				}
@@ -371,7 +378,7 @@ namespace MuMech
 				controlWinPos = GUILayout.Window(956, controlWinPos,
 												 ControlWindow,
 												 "Servo Control",
-												 GUILayout.MinWidth(150));
+												 GUILayout.MinWidth(210));
 			} else if (scene == GameScenes.EDITOR) {
 				var height = GUILayout.Height(Screen.height / 2);
 				editorWinPos = GUILayout.Window(957, editorWinPos,

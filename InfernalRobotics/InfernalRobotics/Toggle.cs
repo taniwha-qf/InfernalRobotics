@@ -36,6 +36,7 @@ public class MuMechToggle : PartModule
     [KSPField(isPersistant = true)] public bool on = false;
 
     [KSPField(isPersistant = true)] public bool isMotionLock;
+    [KSPField(isPersistant = true)] public float customSpeed = 1;
 
     [KSPField(isPersistant = false)] public string rotate_model = "on";
     [KSPField(isPersistant = false)] public Vector3 rotateAxis = Vector3.forward;
@@ -451,14 +452,16 @@ public class MuMechToggle : PartModule
 */
     protected void updateRotation(float speed, bool reverse, int mask)
     {
-        rotation += TimeWarp.fixedDeltaTime * speed * (reverse ? -1 : 1);
+        speed *= customSpeed * (reverse ? -1 : 1);
+        rotation += TimeWarp.fixedDeltaTime * speed;
         rotationChanged |= mask;
         playAudio();
     }
 
     protected void updateTranslation(float speed, bool reverse, int mask)
     {
-        translation += TimeWarp.fixedDeltaTime * speed * (reverse ? -1 : 1);
+        speed *= customSpeed * (reverse ? -1 : 1);
+        translation += TimeWarp.fixedDeltaTime * speed;
         translationChanged |= mask;
         playAudio();
     }
