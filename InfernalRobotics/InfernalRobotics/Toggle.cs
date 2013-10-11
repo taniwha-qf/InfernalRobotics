@@ -470,6 +470,15 @@ public class MuMechToggle : PartModule
                 && Input.GetKey(key));
     }
 
+    protected float HomeSpeed(float offset, float maxSpeed)
+    {
+        float speed = Math.Abs(offset) / TimeWarp.deltaTime;
+        if (speed > maxSpeed) {
+            speed = maxSpeed;
+        }
+        return -speed * Mathf.Sign(offset);
+    }
+
     protected void checkInputs()
     {
         if (part.isConnected && keyPressed(onKey)) {
@@ -500,11 +509,11 @@ public class MuMechToggle : PartModule
         }
 
         if (((moveFlags & 0x404) != 0) && (rotationChanged == 0) && (translationChanged == 0)) {
-            rotation -= Mathf.Sign(rotation) * Mathf.Min(Mathf.Abs(keyRotateSpeed * TimeWarp.deltaTime), Mathf.Abs(rotation));
-            translation -= Mathf.Sign(translation) * Mathf.Min(Mathf.Abs(keyTranslateSpeed * TimeWarp.deltaTime), Mathf.Abs(translation));
-            rotationChanged |= 2;
-            translationChanged |= 2;
-            playAudio();
+            float speed;
+            speed = HomeSpeed(rotation, keyRotateSpeed);
+            updateRotation(speed, false, 2);
+            speed = HomeSpeed(translation, keyTranslateSpeed);
+            updateTranslation(speed, false, 2);
         }
 
         if (moveFlags == 0 && !on) {
