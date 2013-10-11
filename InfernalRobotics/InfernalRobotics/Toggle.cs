@@ -433,7 +433,9 @@ public class MuMechToggle : PartModule
 
     protected bool keyPressed(string key)
     {
-        return key != "" && vessel == FlightGlobals.ActiveVessel && InputLockManager.IsUnlocked(ControlTypes.LINEAR) && Input.GetKey(key);
+        return (key != "" && vessel == FlightGlobals.ActiveVessel
+                && InputLockManager.IsUnlocked(ControlTypes.LINEAR)
+                && Input.GetKey(key));
     }
 
     protected void checkInputs()
