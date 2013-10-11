@@ -323,19 +323,7 @@ public class MuMechToggle : PartModule
         setupJoints();
         updateState();
     }
-/*
-    public override void OnAttach(Part parent)
-    {
-        on = false;
-        updateState();
-    }
 
-    public override void OnDetach()
-    {
-        on = true;
-        updateState();
-    }
-*/
     protected bool setupJoints()
     {
         if (!gotOrig) {
